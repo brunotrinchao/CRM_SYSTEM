@@ -4,7 +4,12 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "vercel": [
+            "@php -v",
+            "@php artisan filament:assets",
+            "@php artisan optimize"
+        ]
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.3.3",
