@@ -419,6 +419,12 @@
       "accessCount": 1,
       "lastAccessed": 1786994459529,
       "type": "file"
+    },
+    {
+      "path": "vendor/laravel/framework/src/Illuminate/Encryption/EncryptionServiceProvider.php",
+      "accessCount": 1,
+      "lastAccessed": 1786996517540,
+      "type": "file"
     }
   ],
   "userDirectives": []
