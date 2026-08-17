@@ -5,11 +5,14 @@ echo "==> Checking PHP CLI..."
 if ! command -v php &> /dev/null; then
     if [ ! -f ./php ]; then
         echo "--> Downloading static PHP CLI for Vercel build container..."
-        # "common" set não traz ext-intl (exigida por filament/support) e a v8.3.0 é
-        # baixa demais pro composer.lock atual (spatie/laravel-activitylog, symfony/*
-        # travados em php >=8.4.1). Usa o set "bulk" (tem intl/pdo_mysql/gd/redis/zip)
-        # na mesma versão do composer.lock.
-        curl -sSL -o php.tar.gz https://dl.static-php.dev/static-php-cli/bulk/php-8.4.23-cli-linux-x86_64.tar.gz
+        # Atualizado para uma versão existente e estável do PHP 8.4 no static-php-cli
+        curl -sSL -o php.tar.gz https://dl.static-php.dev/static-php-cli/bulk/php-8.4.8-cli-linux-x86_64.tar.gz
+        
+        if [ ! -f php.tar.gz ] || [ ! -s php.tar.gz ]; then
+            echo "❌ Erro: Falha ao baixar o binário do PHP."
+            exit 1
+        fi
+
         tar -xzf php.tar.gz
         rm -f php.tar.gz
         chmod +x ./php
@@ -20,14 +23,6 @@ else
 fi
 
 echo "==> Setting build-time fallback env..."
-# Vars sensíveis do dashboard Vercel (DB_*, CACHE_STORE, SESSION_DRIVER,
-# QUEUE_CONNECTION etc) só são injetadas em runtime (execução da function),
-# não durante o build — aqui elas chegam como string vazia, não ausentes.
-# `artisan package:discover`/`filament:upgrade` (rodados pelo composer
-# post-autoload-dump) fazem boot completo do framework e travam ao resolver
-# um driver vazio ("Cache store [] is not defined."). Fallback só entra se a
-# var estiver vazia/ausente — em runtime real (api/index.php) os valores
-# reais do dashboard prevalecem normalmente.
 export CACHE_STORE="${CACHE_STORE:-array}"
 export SESSION_DRIVER="${SESSION_DRIVER:-array}"
 export QUEUE_CONNECTION="${QUEUE_CONNECTION:-sync}"
