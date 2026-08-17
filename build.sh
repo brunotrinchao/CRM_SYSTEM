@@ -13,10 +13,10 @@ if command -v php >/dev/null 2>&1; then
 else
     echo "==> PHP CLI não encontrado. Baixando PHP 8.3..."
 
-    if [ ! -f ./php ]; then
-        curl -sSL \
-            -o php.tar.gz \
-            https://dl.static-php.dev/static-php-cli/common/php-8.3.14-cli-linux-x86_64.tar.gz
+        if [ ! -f ./php ]; then
+            curl -sSL \
+                -o php.tar.gz \
+                https://dl.static-php.dev/static-php-cli/common/php-8.3.14-cli-linux-x86_64.tar.gz
 
         if [ ! -s php.tar.gz ]; then
             echo "ERRO: Não foi possível baixar o PHP."
