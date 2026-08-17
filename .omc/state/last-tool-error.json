@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"/home/brunotrinchao/.claude/squeez/bin/squeez wrap 'cd /tmp && node kanban_click_test2.js > /tmp/t3.log 2>&1; cat /tmp/t3.log; echo \\\"---LOG---\\\"; tail -n +206846 /home/brunotrinchao/Docum...",
+  "error": "Exit code 1\n# squeez [cd] 319→254 tokens (-21%) 10302ms [adaptive: Full] [budget: ~8350 calls left]\n=== CONSOLE ===\n[console.debug] [vite] connecting...  [×3]\n[console.debug] [vite] connected.  [×3]\n[info] kanban-scoped card count: 119\nSaved full traffic to /tmp/captured_traffic.json, size= 142693\n--- RESPONSE EFFECTS KEYS --- [ 'returns', 'partials', 'dispatches' ]\n--- errors --- undefined\n--- returns --- [null]\n--- dispatches --- [{\"name\":\"sync-action-modals\",\"params\":{\"id\":\"22S9I30jo9AfC1FRcv...",
+  "timestamp": "2026-08-17T16:17:37.938Z",
+  "retry_count": 1
+}

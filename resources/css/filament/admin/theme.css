@@ -1,0 +1,129 @@
+@import "../../../../vendor/filament/filament/resources/css/theme.css";
+@import url("https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+@source '../../../../resources/views/livewire/**/*';
+@source '../../../../app/Livewire/**/*';
+@source '../../../../vendor/bokshorn-it/filament-activity-timeline/resources/**/*.blade.php';
+@source '../../../../vendor/jeffgreco13/filament-breezy/resources/**/*';
+
+@theme {
+    --font-finance: "Space Mono", ui-monospace, monospace;
+}
+
+@layer utilities {
+    .fi-widget {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Valores financeiros (infolist / text) em Space Mono */
+    .font-finance {
+        font-family: var(--font-finance);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.02em;
+    }
+}
+
+/* CurrencyField do plugin janczakb/filament-flex-fields — digits em Space Mono */
+.fff-currency-field__control,
+.fff-currency-field__display,
+.fff-currency-field__digits,
+.fff-currency-field__digit-inner {
+    font-family: var(--font-finance) !important;
+    font-variant-numeric: tabular-nums;
+    color: --text-slate-900;
+}
+
+@layer base {
+    /* Suavização geral de elementos e fontes */
+    body {
+        @apply bg-slate-50 text-slate-800 antialiased;
+    }
+
+    /* Estilização padrão dos cards do painel */
+    .fi-widget {
+        @apply bg-white shadow-sm ring-1 ring-slate-900/5 rounded-2xl p-6;
+    }
+
+    /* Ajuste refinado da Sidebar lateral limpa */
+    /* .fi-sidebar {
+    @apply border-r border-slate-200 bg-white;
+  } */
+
+    .fi-sidebar-item.fi-active.fi-sidebar-item-has-url > a {
+        border-left-width: 2px;
+        @apply border-primary-600 bg-primary-50 text-primary-700;
+
+        & svg,
+        span {
+            @apply text-primary-700;
+        }
+
+        &:hover {
+            @apply bg-primary-100;
+        }
+    }
+}
+
+.fi-badge {
+    @apply rounded-full px-3 py-1;
+}
+
+.fi-sidebar-nav {
+    @apply bg-white dark:bg-gray-900 border-r border-slate-200 dark:border-white/15;
+}
+
+/* .fi-main.fi-width-full{
+    background-color: #f8fafc !important;
+}
+
+.fi-header.fi-header-has-breadcrumbs{
+    padding-bottom: calc(var(--spacing) * 8);;
+    border-bottom: 1px solid rgb(226 232 240 / var(--tw-border-opacity, 1));
+} */
+
+/* Altera o fundo do Slide-over (Painel Lateral) para modo claro e escuro */
+/* Slide-over com fundo levemente mais escuro no modo claro e cinza escuro no modo escuro */
+.fi-modal-slide-over .fi-modal-window {
+    @apply bg-slate-50 dark:bg-gray-900 border-l border-slate-200 dark:border-gray-800;
+}
+
+/* Ajusta também o cabeçalho e rodapé do slide-over para acompanharem o mesmo tom */
+.fi-modal-slide-over .fi-modal-header,
+.fi-modal-slide-over .fi-modal-footer {
+    @apply bg-slate-50 dark:bg-gray-900 border-slate-200 dark:border-gray-800;
+}
+
+/* Alinhamento justify-between para footer de modal (ActionGroup esquerda, ações direita) */
+.fi-modal-footer.fi-align-between .fi-modal-footer-actions {
+    @apply flex flex-wrap items-center justify-between;
+}
+
+.custom-clean-repeatable .fi-in-repeatable-item {
+    background-color: transparent !important;
+    /* padding: 0 !important; */
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.list-products-request {
+    padding: 0;
+        padding-left: 35px;
+    list-style-type: decimal-leading-zero;
+    margin: 0;
+}
+
+.list-products-request li {
+    padding: 4px 0;
+    font-weight: 500;
+}
+
+.values-request-info p span{
+    font-family: var(--font-finance);
+
+    font-weight: bold;
+}
+

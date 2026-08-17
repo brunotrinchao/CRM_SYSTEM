@@ -1,0 +1,299 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1786981794430,
+  "projectRoot": "/home/brunotrinchao/Documentos/Bruno/CRM-SYSTEM",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "PHP",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "composer.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "vite",
+        "version": "8.0.0",
+        "category": "build"
+      }
+    ],
+    "packageManager": "composer",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "npm run build",
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": "npm run dev",
+    "scripts": {
+      "build": "vite build",
+      "dev": "vite"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "app",
+      "public",
+      "tests"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "app": {
+      "path": "app",
+      "purpose": "Application code",
+      "fileCount": 0,
+      "lastAccessed": 1786981794406,
+      "keyFiles": []
+    },
+    "bootstrap": {
+      "path": "bootstrap",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786981794406,
+      "keyFiles": [
+        "app.php",
+        "providers.php"
+      ]
+    },
+    "config": {
+      "path": "config",
+      "purpose": "Configuration files",
+      "fileCount": 15,
+      "lastAccessed": 1786981794415,
+      "keyFiles": [
+        "activitylog.php",
+        "app.php",
+        "auth.php",
+        "cache.php",
+        "cloudinary.php"
+      ]
+    },
+    "database": {
+      "path": "database",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786981794418,
+      "keyFiles": [
+        "database.sqlite"
+      ]
+    },
+    "lang": {
+      "path": "lang",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786981794420,
+      "keyFiles": [
+        "pt_BR.json"
+      ]
+    },
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 6,
+      "lastAccessed": 1786981794420,
+      "keyFiles": [
+        "favicon.ico",
+        "fonts-manifest.dev.json",
+        "hot",
+        "index.php",
+        "robots.txt"
+      ]
+    },
+    "resources": {
+      "path": "resources",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1786981794421,
+      "keyFiles": []
+    },
+    "routes": {
+      "path": "routes",
+      "purpose": "Route handlers",
+      "fileCount": 2,
+      "lastAccessed": 1786981794421,
+      "keyFiles": [
+        "console.php",
+        "web.php"
+      ]
+    },
+    "storage": {
+      "path": "storage",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1786981794421,
+      "keyFiles": []
+    },
+    "tests": {
+      "path": "tests",
+      "purpose": "Test files",
+      "fileCount": 1,
+      "lastAccessed": 1786981794422,
+      "keyFiles": [
+        "TestCase.php"
+      ]
+    },
+    "vendor": {
+      "path": "vendor",
+      "purpose": "Third-party code",
+      "fileCount": 1,
+      "lastAccessed": 1786981794422,
+      "keyFiles": [
+        "autoload.php"
+      ]
+    },
+    "app/Components": {
+      "path": "app/Components",
+      "purpose": "UI components",
+      "fileCount": 2,
+      "lastAccessed": 1786981794423,
+      "keyFiles": [
+        "Card.php",
+        "Repeater.php"
+      ]
+    },
+    "app/Models": {
+      "path": "app/Models",
+      "purpose": "Data models",
+      "fileCount": 9,
+      "lastAccessed": 1786981794423,
+      "keyFiles": [
+        "Address.php",
+        "Category.php",
+        "Client.php"
+      ]
+    },
+    "database/migrations": {
+      "path": "database/migrations",
+      "purpose": "Database migrations",
+      "fileCount": 17,
+      "lastAccessed": 1786981794426,
+      "keyFiles": [
+        "0001_01_01_000000_create_users_table.php",
+        "0001_01_01_000001_create_cache_table.php",
+        "0001_01_01_000002_create_jobs_table.php"
+      ]
+    },
+    "lang/vendor": {
+      "path": "lang/vendor",
+      "purpose": "Third-party code",
+      "fileCount": 0,
+      "lastAccessed": 1786981794427,
+      "keyFiles": []
+    },
+    "public/build": {
+      "path": "public/build",
+      "purpose": "Build output",
+      "fileCount": 2,
+      "lastAccessed": 1786981794428,
+      "keyFiles": [
+        "fonts-manifest.json",
+        "manifest.json"
+      ]
+    },
+    "resources/views": {
+      "path": "resources/views",
+      "purpose": "View templates",
+      "fileCount": 1,
+      "lastAccessed": 1786981794429,
+      "keyFiles": [
+        "welcome.blade.php"
+      ]
+    },
+    "storage/app": {
+      "path": "storage/app",
+      "purpose": "Application code",
+      "fileCount": 1,
+      "lastAccessed": 1786981794430,
+      "keyFiles": []
+    },
+    "vendor/bin": {
+      "path": "vendor/bin",
+      "purpose": "Executable scripts",
+      "fileCount": 8,
+      "lastAccessed": 1786981794430,
+      "keyFiles": [
+        "blade-icons-generate",
+        "carbon",
+        "patch-type-declarations"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "app/Filament/Resources/Deals/Pages/ListDeals.php",
+      "accessCount": 16,
+      "lastAccessed": 1786983735831,
+      "type": "file"
+    },
+    {
+      "path": "vendor/filament/actions/src/Concerns/InteractsWithActions.php",
+      "accessCount": 5,
+      "lastAccessed": 1786983163867,
+      "type": "file"
+    },
+    {
+      "path": "resources/views/filament/resources/deals/pages/list-deals.blade.php",
+      "accessCount": 4,
+      "lastAccessed": 1786983719418,
+      "type": "file"
+    },
+    {
+      "path": "resources/views/livewire/deals-kanban.blade.php",
+      "accessCount": 4,
+      "lastAccessed": 1786983842969,
+      "type": "file"
+    },
+    {
+      "path": "app/Livewire/DealsKanban.php",
+      "accessCount": 3,
+      "lastAccessed": 1786983709088,
+      "type": "file"
+    },
+    {
+      "path": ".claude/session_state.md",
+      "accessCount": 1,
+      "lastAccessed": 1786982850015,
+      "type": "file"
+    },
+    {
+      "path": "vendor/filament/filament/src/Pages/Concerns/InteractsWithHeaderActions.php",
+      "accessCount": 1,
+      "lastAccessed": 1786982969992,
+      "type": "file"
+    },
+    {
+      "path": "vendor/filament/actions/src/Concerns/CanBeDisabled.php",
+      "accessCount": 1,
+      "lastAccessed": 1786983408438,
+      "type": "file"
+    },
+    {
+      "path": "vendor/filament/actions/resources/js/components/modals.js",
+      "accessCount": 1,
+      "lastAccessed": 1786983575075,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
