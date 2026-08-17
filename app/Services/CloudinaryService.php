@@ -12,7 +12,7 @@ class CloudinaryService
     {
         $path = $file->getRealPath();
 
-        if (! is_string($path) || $path === '' || ! is_file($path)) {
+        if (!is_string($path) || $path === '' || !is_file($path)) {
             // em fluxos Livewire o tmp é um stream; usa o recurso php://temp subjacente
             $path = (string) $file->getPathname();
         }
@@ -42,32 +42,25 @@ class CloudinaryService
 
     private static function api(): UploadApi
     {
-        $cloudinaryUrl = getenv('CLOUDINARY_URL') ?: env('CLOUDINARY_URL');
+        // $cloudinaryUrl = getenv('CLOUDINARY_URL') ?: env('CLOUDINARY_URL');
 
-        if ($cloudinaryUrl) {
-            return new UploadApi(Configuration::instance($cloudinaryUrl));
-        }
+        // if (empty($cloudinaryUrl)) {
+            $cloudName = config('cloudinary.cloud_name') ?: env('CLOUDINARY_CLOUD_NAME') ?: env('CLOUDINARY_NAME');
+            $apiKey = config('cloudinary.api_key') ?: env('CLOUDINARY_API_KEY');
+            $apiSecret = config('cloudinary.api_secret') ?: env('CLOUDINARY_API_SECRET');
 
-        $cloudName = (string) config('cloudinary.cloud_name');
-        $apiKey = (string) config('cloudinary.api_key');
-        $apiSecret = (string) config('cloudinary.api_secret');
+            if (empty($cloudName) || empty($apiKey) || empty($apiSecret)) {
+                throw new \RuntimeException(
+                    'As credenciais do Cloudinary não foram encontradas. Defina CLOUDINARY_URL ou CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY e CLOUDINARY_API_SECRET no seu .env.'
+                );
+            }
 
-        if (empty($cloudName) || empty($apiKey) || empty($apiSecret)) {
-            throw new \RuntimeException(
-                'As variáveis de ambiente do Cloudinary (CLOUDINARY_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET ou CLOUDINARY_URL) não foram encontradas no .env ou no Vercel.'
-            );
-        }
+            // Monta a URL padrão que o SDK do Cloudinary exige internamente
+            $cloudinaryUrl = "cloudinary://{$apiKey}:{$apiSecret}@{$cloudName}";
+        // }
 
-        $config = new Configuration([
-            'cloud' => [
-                'cloud_name' => $cloudName,
-                'api_key'    => $apiKey,
-                'api_secret' => $apiSecret,
-            ],
-            'url' => [
-                'secure' => true,
-            ],
-        ]);
+        // Inicializa a configuração de forma 100% compatível com o SDK oficial
+        $config = Configuration::instance($cloudinaryUrl);
 
         return new UploadApi($config);
     }
@@ -82,7 +75,7 @@ class CloudinaryService
     {
         $path = parse_url($url, PHP_URL_PATH);
 
-        if (! is_string($path) || $path === '') {
+        if (!is_string($path) || $path === '') {
             return null;
         }
 
