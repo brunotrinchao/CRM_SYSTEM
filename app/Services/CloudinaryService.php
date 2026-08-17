@@ -42,17 +42,34 @@ class CloudinaryService
 
     private static function api(): UploadApi
     {
-        if (! getenv('CLOUDINARY_URL')) {
-            // formato canônico: cloudinary://KEY:SECRET@NAME
-            putenv(sprintf(
-                'CLOUDINARY_URL=cloudinary://%s:%s@%s',
-                (string) config('cloudinary.api_key'),
-                (string) config('cloudinary.api_secret'),
-                (string) config('cloudinary.cloud_name'),
-            ));
+        $cloudinaryUrl = getenv('CLOUDINARY_URL') ?: env('CLOUDINARY_URL');
+
+        if ($cloudinaryUrl) {
+            return new UploadApi(Configuration::instance($cloudinaryUrl));
         }
 
-        return new UploadApi(Configuration::instance());
+        $cloudName = (string) config('cloudinary.cloud_name');
+        $apiKey = (string) config('cloudinary.api_key');
+        $apiSecret = (string) config('cloudinary.api_secret');
+
+        if (empty($cloudName) || empty($apiKey) || empty($apiSecret)) {
+            throw new \RuntimeException(
+                'As variáveis de ambiente do Cloudinary (CLOUDINARY_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET ou CLOUDINARY_URL) não foram encontradas no .env ou no Vercel.'
+            );
+        }
+
+        $config = new Configuration([
+            'cloud' => [
+                'cloud_name' => $cloudName,
+                'api_key'    => $apiKey,
+                'api_secret' => $apiSecret,
+            ],
+            'url' => [
+                'secure' => true,
+            ],
+        ]);
+
+        return new UploadApi($config);
     }
 
     /**
