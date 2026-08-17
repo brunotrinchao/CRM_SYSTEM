@@ -38,11 +38,11 @@
 
                 $accentBorder = match ($status->value) {
                     'PENDING' => 'border-t-4 border-t-slate-400 dark:border-t-slate-500',
-                    'NEGOTIATING' => 'border-t-4 border-t-amber-500',
-                    'WON' => 'border-t-4 border-t-emerald-500',
-                    'LOST' => 'border-t-4 border-t-rose-500',
+                    'NEGOTIATING' => 'border-t-4 border-t-amber-500 dark:border-t-amber-500',
+                    'WON' => 'border-t-4 border-t-emerald-500 dark:border-t-emerald-500',
+                    'LOST' => 'border-t-4 border-t-rose-500 dark:border-t-rose-500',
                     'CANCELLED' => 'border-t-4 border-t-slate-700 dark:border-t-slate-600',
-                    default => 'border-t-4 border-t-primary-500',
+                    default => 'border-t-4 border-t-primary-500 dark:border-t-primary-600',
                 };
 
                 $dotBg = match ($status->value) {
@@ -99,7 +99,10 @@
                                 'REJECTED' => 'border-l-4 border-l-rose-500',
                                 default => 'border-l-2 border-l-slate-200 dark:border-l-slate-800',
                             };
-                            $isDraggable = !in_array($deal->status->value, ['CANCELLED', 'WON', 'LOST']);
+                            // Negócios finalizados só são arrastáveis por perfis diferentes de USER
+                            // (mesma regra aplicada em DealsKanban::moveDeal()).
+                            $isTerminalStatus = in_array($deal->status->value, ['CANCELLED', 'WON', 'LOST']);
+                            $isDraggable = !$isTerminalStatus || auth()->user()?->profile !== \App\Enums\UserProfile::USER;
                             $sellerInitials = strtoupper(substr($deal->user?->name ?? 'U', 0, 2));
                         @endphp
 
@@ -107,7 +110,7 @@
                             draggable="{{ $isDraggable ? 'true' : 'false' }}"
                             x-on:dragstart="draggedDealId = {{ $deal->id }}; $el.classList.add('opacity-40')"
                             x-on:dragend="draggedDealId = null; $el.classList.remove('opacity-40')"
-                            @click="Livewire.find('{{ $parentId }}').call('openDealView', {{ $deal->id }})"
+                            @click="$wire.mountAction('custom_view', { record: {{ $deal->id }} })"
                             class="group relative bg-white dark:bg-slate-900 border rounded-2xl p-4 shadow-sm space-y-3 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 border-slate-200/90 dark:border-slate-800 hover:border-primary-500/50 dark:hover:border-primary-400/50 cursor-pointer {{ $leftBorder }} {{ $isDraggable ? 'active:cursor-grabbing' : '' }}"
                         >
                             {{-- Top Header Card: Title & Lock --}}
@@ -171,94 +174,8 @@
         @endforeach
     </div>
 
-    {{-- Modal de Confirmação para CANCELADO --}}
-    @if ($showCancelModal && $pendingCancelDeal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in">
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5">
-                <div class="flex items-center gap-3.5">
-                    <div class="p-3 bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 rounded-2xl shrink-0">
-                        <x-filament::icon icon="heroicon-o-exclamation-triangle" class="h-7 w-7" />
-                    </div>
-                    <div>
-                        <h3 class="font-extrabold text-base text-slate-900 dark:text-slate-100">
-                            Confirmar Cancelamento
-                        </h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                            Ação definitiva e irreversível
-                        </p>
-                    </div>
-                </div>
-
-                <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 p-4 rounded-2xl space-y-2">
-                    <p class="text-xs text-rose-950 dark:text-rose-200">
-                        Tem certeza de que deseja cancelar o negócio <strong>"{{ $pendingCancelDeal->title }}"</strong>?
-                    </p>
-                    <p class="text-[11px] text-rose-700 dark:text-rose-300 font-bold flex items-center gap-1">
-                        ⚠️ O cancelamento não poderá ser desfeito e o botão de edição será bloqueado.
-                    </p>
-                </div>
-
-                <div class="flex items-center justify-end gap-3 pt-2">
-                    <button
-                        type="button"
-                        wire:click="closeCancelModal"
-                        class="px-4 py-2.5 text-xs font-extrabold rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
-                    >
-                        Voltar
-                    </button>
-                    <button
-                        type="button"
-                        wire:click="executeCancelDeal"
-                        class="px-4 py-2.5 text-xs font-extrabold rounded-xl bg-rose-600 hover:bg-rose-500 text-white shadow-md transition-all"
-                    >
-                        Sim, Cancelar Negócio
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    {{-- Modal de Confirmação para PERDIDO --}}
-    @if ($showLostModal && $pendingLostDeal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in">
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5">
-                <div class="flex items-center gap-3.5">
-                    <div class="p-3 bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 rounded-2xl shrink-0">
-                        <x-filament::icon icon="heroicon-o-hand-thumb-down" class="h-7 w-7" />
-                    </div>
-                    <div>
-                        <h3 class="font-extrabold text-base text-slate-900 dark:text-slate-100">
-                            Confirmar Status Perdido
-                        </h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                            Alteração de Status do Negócio
-                        </p>
-                    </div>
-                </div>
-
-                <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 p-4 rounded-2xl space-y-2">
-                    <p class="text-xs text-amber-950 dark:text-amber-200">
-                        Tem certeza de que deseja alterar o status do negócio <strong>"{{ $pendingLostDeal->title }}"</strong> para <strong class="text-amber-600 dark:text-amber-400">Perdido</strong>?
-                    </p>
-                </div>
-
-                <div class="flex items-center justify-end gap-3 pt-2">
-                    <button
-                        type="button"
-                        wire:click="closeLostModal"
-                        class="px-4 py-2.5 text-xs font-extrabold rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
-                    >
-                        Voltar
-                    </button>
-                    <button
-                        type="button"
-                        wire:click="executeLostDeal"
-                        class="px-4 py-2.5 text-xs font-extrabold rounded-xl bg-amber-600 hover:bg-amber-500 text-white shadow-md transition-all"
-                    >
-                        Confirmar como Perdido
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
+    {{-- Modais de confirmação (visualizar negócio e mudança de status do Kanban) são
+         renderizados aqui pelas actions nativas do Filament cacheadas em
+         DealsKanban::boot() (custom_view / change_deal_status). --}}
+    <x-filament-actions::modals />
 </div>

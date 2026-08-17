@@ -111,7 +111,7 @@ class DealsTable
                 };
             })
             ->filters([
-                TrashedFilter::make(),
+                // TrashedFilter::make(),
                 SelectFilter::make('user_id')
                     ->label('Vendedor Responsável')
                     ->relationship('user', 'name', fn($query) => $query->where('profile', UserProfile::USER)),
@@ -121,7 +121,6 @@ class DealsTable
                 Filter::make('has_pending_discount')
                     ->label('Com Desconto Pendente')
                     ->indicator('Desconto Pendente')
-                    // Se preferir usar o formato de Switch nativo no painel de filtros:
                     ->schema([
                         Toggle::make('pending')
                             ->label('Apenas com desconto pendente')
@@ -130,17 +129,40 @@ class DealsTable
                         return $query->when(
                             $data['pending'] ?? false,
                             fn(Builder $query) => $query->whereHas('discountRequests', function ($q) {
-                                $q->where('status', 'PENDING'); // Ajuste o status conforme sua regra de banco
+                                $q->where('status', 'PENDING');
                             })
                         );
                     }),
                 SelectFilter::make('status')
                     ->multiple()
                     ->options(DealStatus::options()),
-                \Malzariey\FilamentDaterangepickerFilter\Filters\DateRangeFilter::make('actual_close_date')
-                    ->label('Data de Ganho'),
+                Filter::make('actual_close_date')
+                    ->label('Data de Ganho')
+                    ->query(function (Builder $query, array $data): Builder {
+                        $range = $data['actual_close_date'] ?? null;
+
+                        if (blank($range)) {
+                            return $query;
+                        }
+
+                        $dates = explode(' - ', $range);
+
+                        if (count($dates) !== 2) {
+                            return $query;
+                        }
+
+                        return $query->whereBetween('actual_close_date', [
+                            $dates[0] . ' 00:00:00',
+                            $dates[1] . ' 23:59:59',
+                        ]);
+                    }),
             ])
             ->filtersLayout(FiltersLayout::Modal)
+            // Botão nativo de filtros escondido: os filtros agora são controlados por um
+            // painel único em list-deals.blade.php (ListDeals::getFiltersAction()), que
+            // afeta Tabela e Kanban ao mesmo tempo. Os Filter objects abaixo continuam
+            // registrados normalmente — só o gatilho/UI nativo do Filament é que some.
+            ->filtersTriggerAction(fn ($action) => $action->hidden())
             ->recordUrl(null)
             ->recordAction('custom_view')
             ->recordActions([

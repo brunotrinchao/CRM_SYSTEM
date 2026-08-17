@@ -3,38 +3,36 @@
 namespace App\Livewire;
 
 use App\Enums\DealStatus;
+use App\Enums\UserProfile;
+use App\Filament\Resources\Deals\Pages\ListDeals;
 use App\Models\Deal;
 use App\Services\DealService;
+use Filament\Actions\Action;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Concerns\InteractsWithSchemas;
+use Filament\Schemas\Contracts\HasSchemas;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
-class DealsKanban extends Component
+class DealsKanban extends Component implements HasActions, HasSchemas
 {
-    public ?Deal $pendingCancelDeal = null;
-    public ?Deal $pendingLostDeal = null;
-
-    public bool $showCancelModal = false;
-    public bool $showLostModal = false;
+    use InteractsWithActions;
+    use InteractsWithSchemas;
 
     public array $tableFilters = [];
     public string $search = '';
-
-    // ID do componente Livewire pai (ListDeals), usado pelo card do Kanban para chamar
-    // openDealView() diretamente via Livewire.find(parentId).call(...). Um dispatch de
-    // evento de navegador (#[On]) não força um re-render completo do slideover nesse
-    // fluxo entre componentes; a chamada direta sim.
-    public string $parentId = '';
 
     protected $listeners = [
         'refresh-kanban' => '$refresh',
         'table-filters-updated' => 'handleTableFiltersUpdated',
     ];
 
-    public function mount(array $tableFilters = [], string $tableSearch = '', string $parentId = ''): void
+    public function mount(array $tableFilters = [], string $tableSearch = ''): void
     {
         $this->tableFilters = $tableFilters;
         $this->search = $tableSearch;
-        $this->parentId = $parentId;
     }
 
     public function handleTableFiltersUpdated($tableFilters = [], $tableSearch = ''): void
@@ -43,9 +41,88 @@ class DealsKanban extends Component
         $this->search = (string) $tableSearch;
     }
 
-    public function openDealView(int $dealId): void
+    // Espelha pra Tabela (ListDeals) qualquer busca digitada aqui no Kanban, pra que
+    // filtro/busca afetem as duas visões independente de onde foi alterado.
+    public function updatedSearch(): void
     {
-        $this->dispatch('open-deal-view', id: $dealId);
+        $this->dispatch('kanban-search-updated', search: $this->search);
+    }
+
+    // A action 'custom_view' (mesma usada pela Tabela e reaproveitada de
+    // ListDeals::getCustomViewAction()) precisa ser cacheada localmente aqui — não dá
+    // pra montá-la via cross-component (Livewire.find()/#[On] no ListDeals): o
+    // slideover não renderiza visualmente quando o clique se origina de dentro deste
+    // componente filho. Rodando aqui (mesmo componente do clique = mesmo componente
+    // que renderiza <x-filament-actions::modals /> no blade), funciona.
+    public function boot(): void
+    {
+        $this->cacheAction(ListDeals::getCustomViewAction());
+        $this->cacheAction($this->getChangeDealStatusAction());
+    }
+
+    // Action nativa do Filament (modal de confirmação padrão do painel, em vez de HTML
+    // customizado) usada por moveDeal() sempre que a transição de status exige
+    // confirmação. Argumentos (dealId/targetStatus) chegam via mountAction().
+    protected function getChangeDealStatusAction(): Action
+    {
+        return Action::make('change_deal_status')
+            ->requiresConfirmation()
+            ->modalSubmitActionLabel('Confirmar')
+            ->color(fn (array $arguments): string => match (DealStatus::from($arguments['targetStatus'])) {
+                DealStatus::CANCELLED => 'danger',
+                DealStatus::LOST => 'warning',
+                DealStatus::WON => 'success',
+                default => 'gray',
+            })
+            ->modalIcon(fn (array $arguments): string => match (DealStatus::from($arguments['targetStatus'])) {
+                DealStatus::CANCELLED => 'heroicon-o-exclamation-triangle',
+                DealStatus::LOST => 'heroicon-o-hand-thumb-down',
+                DealStatus::WON => 'heroicon-o-trophy',
+                default => 'heroicon-o-arrows-right-left',
+            })
+            ->modalHeading(fn (array $arguments): string => match (DealStatus::from($arguments['targetStatus'])) {
+                DealStatus::CANCELLED => 'Confirmar Cancelamento',
+                DealStatus::LOST => 'Confirmar Status Perdido',
+                DealStatus::WON => 'Confirmar Negócio Ganho',
+                default => 'Confirmar Alteração de Status',
+            })
+            ->modalDescription(function (array $arguments): string {
+                $deal = Deal::find($arguments['dealId']);
+                $targetStatus = DealStatus::from($arguments['targetStatus']);
+
+                $description = "Tem certeza de que deseja alterar o status do negócio \"{$deal?->title}\" para {$targetStatus->label()}?";
+
+                if ($targetStatus === DealStatus::CANCELLED) {
+                    $description .= ' O cancelamento não poderá ser desfeito e o botão de edição será bloqueado.';
+                }
+
+                return $description;
+            })
+            ->action(function (array $arguments): void {
+                $deal = Deal::find($arguments['dealId']);
+                if (! $deal) {
+                    return;
+                }
+
+                $targetStatus = DealStatus::from($arguments['targetStatus']);
+
+                $data = ['status' => $targetStatus->value];
+                if ($targetStatus === DealStatus::CANCELLED) {
+                    $data['confirm_status_cancelled'] = true;
+                }
+                if ($targetStatus === DealStatus::LOST) {
+                    $data['confirm_status_lost'] = true;
+                }
+
+                $dealTitle = $deal->title;
+                DealService::update($deal, $data);
+
+                Notification::make()
+                    ->title('Status Atualizado')
+                    ->body("O negócio '{$dealTitle}' foi movido para {$targetStatus->label()}.")
+                    ->success()
+                    ->send();
+            });
     }
 
     public function moveDeal(int $dealId, string $targetStatusValue): void
@@ -60,13 +137,19 @@ class DealsKanban extends Component
             return;
         }
 
-        // 1. Negócios Cancelados não podem ser movidos
-        if ($deal->status === DealStatus::CANCELLED) {
-            Notification::make()
-                ->title('Ação não permitida')
-                ->body('Negócios cancelados não podem ter o status alterado.')
-                ->danger()
-                ->send();
+        // 1. Negócios já Finalizados (Ganho, Perdido, Cancelado): perfil USER nunca
+        // move; outros perfis podem, mas sempre com confirmação.
+        if (in_array($deal->status, [DealStatus::WON, DealStatus::LOST, DealStatus::CANCELLED])) {
+            if (Auth::user()?->profile === UserProfile::USER) {
+                Notification::make()
+                    ->title('Negócio Finalizado')
+                    ->body('Este negócio já foi concluído e não pode ser movido.')
+                    ->warning()
+                    ->send();
+                return;
+            }
+
+            $this->mountAction('change_deal_status', ['dealId' => $deal->id, 'targetStatus' => $targetStatus->value]);
             return;
         }
 
@@ -83,8 +166,7 @@ class DealsKanban extends Component
             }
 
             if ($targetStatus === DealStatus::CANCELLED) {
-                $this->pendingCancelDeal = $deal;
-                $this->showCancelModal = true;
+                $this->mountAction('change_deal_status', ['dealId' => $deal->id, 'targetStatus' => $targetStatus->value]);
                 return;
             }
 
@@ -96,27 +178,10 @@ class DealsKanban extends Component
             return;
         }
 
-        // 3. Regras a partir de NEGOCIAÇÃO
+        // 3. Regras a partir de NEGOCIAÇÃO: Ganho, Perdido e Cancelado sempre com confirmação
         if ($deal->status === DealStatus::NEGOTIATING) {
-            if ($targetStatus === DealStatus::WON) {
-                DealService::update($deal, ['status' => DealStatus::WON->value]);
-                Notification::make()
-                    ->title('Negócio Ganho! 🎉')
-                    ->body("O negócio '{$deal->title}' foi concluído como Ganho.")
-                    ->success()
-                    ->send();
-                return;
-            }
-
-            if ($targetStatus === DealStatus::LOST) {
-                $this->pendingLostDeal = $deal;
-                $this->showLostModal = true;
-                return;
-            }
-
-            if ($targetStatus === DealStatus::CANCELLED) {
-                $this->pendingCancelDeal = $deal;
-                $this->showCancelModal = true;
+            if (in_array($targetStatus, [DealStatus::WON, DealStatus::LOST, DealStatus::CANCELLED])) {
+                $this->mountAction('change_deal_status', ['dealId' => $deal->id, 'targetStatus' => $targetStatus->value]);
                 return;
             }
 
@@ -127,68 +192,6 @@ class DealsKanban extends Component
                 ->send();
             return;
         }
-
-        // 4. Negócios já concluídos (WON / LOST)
-        if (in_array($deal->status, [DealStatus::WON, DealStatus::LOST])) {
-            Notification::make()
-                ->title('Negócio Finalizado')
-                ->body('Este negócio já foi concluído e não pode ser movido.')
-                ->warning()
-                ->send();
-            return;
-        }
-    }
-
-    public function executeCancelDeal(): void
-    {
-        if (! $this->pendingCancelDeal) {
-            return;
-        }
-
-        DealService::update($this->pendingCancelDeal, [
-            'status' => DealStatus::CANCELLED->value,
-            'confirm_status_cancelled' => true,
-        ]);
-
-        Notification::make()
-            ->title('Negócio Cancelado')
-            ->body("O negócio '{$this->pendingCancelDeal->title}' foi cancelado.")
-            ->success()
-            ->send();
-
-        $this->closeCancelModal();
-    }
-
-    public function closeCancelModal(): void
-    {
-        $this->showCancelModal = false;
-        $this->pendingCancelDeal = null;
-    }
-
-    public function executeLostDeal(): void
-    {
-        if (! $this->pendingLostDeal) {
-            return;
-        }
-
-        DealService::update($this->pendingLostDeal, [
-            'status' => DealStatus::LOST->value,
-            'confirm_status_lost' => true,
-        ]);
-
-        Notification::make()
-            ->title('Negócio Perdido')
-            ->body("O negócio '{$this->pendingLostDeal->title}' foi marcado como Perdido.")
-            ->warning()
-            ->send();
-
-        $this->closeLostModal();
-    }
-
-    public function closeLostModal(): void
-    {
-        $this->showLostModal = false;
-        $this->pendingLostDeal = null;
     }
 
     public function render()
