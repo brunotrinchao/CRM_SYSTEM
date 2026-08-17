@@ -16,6 +16,7 @@ use App\Observers\DealObserver;
 use App\Observers\DiscountRequestObserver;
 use App\Observers\NoteObserver;
 use App\Observers\ProductObserver;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -33,6 +34,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
        Category::observe(CategoryObserver::class);
        Client::observe(ClientObserver::class);
        Product::observe(ProductObserver::class);
