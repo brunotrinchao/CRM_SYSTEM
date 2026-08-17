@@ -407,6 +407,18 @@
       "accessCount": 1,
       "lastAccessed": 1786992292962,
       "type": "file"
+    },
+    {
+      "path": "vercel.json",
+      "accessCount": 1,
+      "lastAccessed": 1786994156890,
+      "type": "file"
+    },
+    {
+      "path": "composer.json",
+      "accessCount": 1,
+      "lastAccessed": 1786994459529,
+      "type": "file"
     }
   ],
   "userDirectives": []

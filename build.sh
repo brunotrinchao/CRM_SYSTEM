@@ -5,7 +5,11 @@ echo "==> Checking PHP CLI..."
 if ! command -v php &> /dev/null; then
     if [ ! -f ./php ]; then
         echo "--> Downloading static PHP CLI for Vercel build container..."
-        curl -sSL -o php.tar.gz https://dl.static-php.dev/static-php-cli/common/php-8.3.0-cli-linux-x86_64.tar.gz
+        # "common" set não traz ext-intl (exigida por filament/support) e a v8.3.0 é
+        # baixa demais pro composer.lock atual (spatie/laravel-activitylog, symfony/*
+        # travados em php >=8.4.1). Usa o set "bulk" (tem intl/pdo_mysql/gd/redis/zip)
+        # na mesma versão do composer.lock.
+        curl -sSL -o php.tar.gz https://dl.static-php.dev/static-php-cli/bulk/php-8.4.23-cli-linux-x86_64.tar.gz
         tar -xzf php.tar.gz
         rm -f php.tar.gz
         chmod +x ./php

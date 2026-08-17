@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"/home/brunotrinchao/.claude/squeez/bin/squeez wrap 'cat > /tmp/test_date_filter.php <<'\\\"'\\\"'EOF'\\\"'\\\"'\\n<?php\\nrequire __DIR__.'\\\"'\\\"'/vendor/autoload.php'\\\"'\\\"';\\n$app = require __DIR__....",
-  "error": "Exit code 255\n# squeez hint: /tmp/test_date_filter.php already in context (Read tool, call #8) — reuse cached content if possible\n# squeez [cat] 95→16 tokens (-84%) 51ms [adaptive: Ultra] [budget: ~1036 calls left]\n[squeez: identical to 21d9ef74 at bash#8 — output omitted]",
-  "timestamp": "2026-08-17T18:41:55.801Z",
-  "retry_count": 3
+  "tool_input_preview": "{\"command\":\"/home/brunotrinchao/.claude/squeez/bin/squeez wrap 'cd /home/brunotrinchao/Documentos/Bruno/CRM-SYSTEM\\ngrep -n \\\"'\\\"'\\\"'default'\\\"'\\\"' =>\\\" config/cache.php config/session.php config/queu...",
+  "error": "Exit code 2\nconfig/cache.php:18:    'default' => env('CACHE_STORE', 'database'),\nconfig/queue.php:16:    'default' => env('QUEUE_CONNECTION', 'database'),\nconfig/database.php:20:    'default' => env('DB_CONNECTION', 'sqlite'),\nconfig/database.php:156:        'default' => [\nconfig/filesystems.php:16:    'default' => env('FILESYSTEM_DISK', 'local'),\nconfig/logging.php:21:    'default' => env('LOG_CHANNEL', 'stack'),\nconfig/mail.php:17:    'default' => env('MAIL_MAILER', 'log'),",
+  "timestamp": "2026-08-17T19:30:35.363Z",
+  "retry_count": 1
 }
