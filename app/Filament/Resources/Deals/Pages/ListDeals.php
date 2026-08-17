@@ -178,10 +178,16 @@ class ListDeals extends ListRecords
 
     private function applyDateRangeFilter(): void
     {
-        $this->tableFilters['actual_close_date']['actual_close_date'] =
-            ($this->filterDateFrom && $this->filterDateUntil)
-                ? "{$this->filterDateFrom} - {$this->filterDateUntil}"
-                : null;
+        $isActive = (bool) ($this->filterDateFrom && $this->filterDateUntil);
+
+        // Filter::make('actual_close_date') não tem ->schema() próprio, então o
+        // Filament usa o reset state padrão dele: ['isActive' => false]. Sem
+        // marcar isActive aqui, InteractsWithTableQuery::apply() sempre pula o
+        // filtro (checa $data['isActive']), mesmo com o range preenchido.
+        $this->tableFilters['actual_close_date']['isActive'] = $isActive;
+        $this->tableFilters['actual_close_date']['actual_close_date'] = $isActive
+            ? "{$this->filterDateFrom} - {$this->filterDateUntil}"
+            : null;
 
         $this->syncWidgetFilters();
     }
@@ -215,6 +221,7 @@ class ListDeals extends ListRecords
             model: Deal::class,
             recordName: 'Negócio',
             recordAction: fn (Deal $record): bool => $record->status !== DealStatus::CANCELLED,
+            deleteAction: fn (Deal $record): bool => $record->canBeDeleted(),
             modal: false,
             relations: ['client', 'products', 'discountRequests'],
             extraFooterActions: [

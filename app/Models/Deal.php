@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use App\Enums\DealStatus;
 use App\Enums\DiscountRequestStatus;
+use App\Enums\UserProfile;
 use BokshornIt\FilamentActivityTimeline\Contracts\ProvidesActivityTitle;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use ToneGabes\Filament\Icons\Enums\Phosphor;
@@ -41,6 +44,17 @@ class Deal extends Model implements ProvidesActivityTitle
         'last_contact_date',
         'loss_reason',
     ];
+
+    // Perfil USER nunca exclui negócio. Demais perfis (ADMIN/MANAGER) só podem
+    // excluir negócios com status PENDENTE.
+    public function canBeDeleted(): bool
+    {
+        if (Auth::user()?->profile === UserProfile::USER) {
+            return false;
+        }
+
+        return $this->status === DealStatus::PENDING;
+    }
 
     public function user()
     {

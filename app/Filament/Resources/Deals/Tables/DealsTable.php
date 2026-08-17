@@ -138,6 +138,24 @@ class DealsTable
                     ->options(DealStatus::options()),
                 Filter::make('actual_close_date')
                     ->label('Data de Ganho')
+                    ->indicator(function (array $data): ?string {
+                        $range = $data['actual_close_date'] ?? null;
+
+                        if (blank($range)) {
+                            return null;
+                        }
+
+                        $dates = explode(' - ', $range);
+
+                        if (count($dates) !== 2) {
+                            return null;
+                        }
+
+                        $from = \Illuminate\Support\Carbon::parse($dates[0])->format('d/m/Y');
+                        $until = \Illuminate\Support\Carbon::parse($dates[1])->format('d/m/Y');
+
+                        return "Data de Ganho: {$from} até {$until}";
+                    })
                     ->query(function (Builder $query, array $data): Builder {
                         $range = $data['actual_close_date'] ?? null;
 
@@ -174,6 +192,7 @@ class DealsTable
                     model: Deal::class,
                     recordName: 'Negócio',
                     recordAction: fn(Deal $record): bool => $record->status !== DealStatus::CANCELLED,
+                    deleteAction: fn(Deal $record): bool => $record->canBeDeleted(),
                     modal: false,
                     relations: ['client', 'products', 'discountRequests'],
                     extraFooterActions: [

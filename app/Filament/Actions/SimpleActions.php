@@ -210,7 +210,8 @@ class SimpleActions
         ?callable $recordAction = null,
         bool $modal = false,
         array $relations = [],
-        array $extraFooterActions = []  // Actions adicionais no rodapé (ex: timeline)
+        array $extraFooterActions = [],  // Actions adicionais no rodapé (ex: timeline)
+        ?callable $deleteAction = null   // Gate específico pro botão Excluir; null cai no $isEditable
     ): ViewAction {
         $modalIcon = new ($model);
         $action = ViewAction::make('custom_view')
@@ -242,7 +243,7 @@ class SimpleActions
             ->modalFooterActionsAlignment(\Filament\Support\Enums\Alignment::End)
             // extraModalFooterActions suporta ActionGroup (prepareModalActionGroup).
             // modalFooterActions NÃO suporta — chama prepareModalAction(Action) sem checar ActionGroup.
-            ->extraModalFooterActions(function (?Model $record) use ($actionCallback, $recordAction, $recordName, $width, $schemaCallback, $modal, $model, $relations, $extraFooterActions) {
+            ->extraModalFooterActions(function (?Model $record) use ($actionCallback, $recordAction, $deleteAction, $recordName, $width, $schemaCallback, $modal, $model, $relations, $extraFooterActions) {
                 if (! ($record instanceof Model) || ! $record->exists) {
                     return [];
                 }
@@ -278,7 +279,16 @@ class SimpleActions
                 // Ordem visual (invertida): Delete | Edit | ActionGroup — todos agrupados à direita.
                 $actions = [];
 
-                if ($isEditable) {
+                $isDeletable = $isEditable;
+                if ($deleteAction) {
+                    try {
+                        $isDeletable = (bool) call_user_func($deleteAction, $record);
+                    } catch (\Throwable $e) {
+                        $isDeletable = false;
+                    }
+                }
+
+                if ($isDeletable) {
                     $actions[] = DeleteAction::make()
                         ->size(Size::ExtraLarge)
                         ->modalHeading(fn(Model $rec) => "Excluir {$recordName}")

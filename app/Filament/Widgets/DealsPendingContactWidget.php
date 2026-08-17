@@ -110,7 +110,8 @@ class DealsPendingContactWidget extends Widget implements HasActions, HasForms
             model: Deal::class,
             schemaViewCallback: fn ($schema) => DealInfolist::configure($schema),
             recordName: 'Negócio',
-            modal: false
+            modal: false,
+            deleteAction: fn (Deal $record): bool => $record->canBeDeleted(),
         )
         ->record(fn (array $arguments): ?Deal => isset($arguments['record']) ? Deal::find($arguments['record']) : null);
     }

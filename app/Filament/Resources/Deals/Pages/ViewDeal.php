@@ -47,7 +47,8 @@ class ViewDeal extends ViewRecord
                 model: Deal::class,
                 recordName: 'Negócio',
                 modal: false,
-                relations: ['client', 'products', 'discountRequests']
+                relations: ['client', 'products', 'discountRequests'],
+                deleteAction: fn (Deal $record): bool => $record->canBeDeleted(),
             ),
         ];
     }

@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"/home/brunotrinchao/.claude/squeez/bin/squeez wrap 'grep -n \\\"activeTab\\\" /home/brunotrinchao/Documentos/Bruno/CRM-SYSTEM/app/Filament/Resources/Deals/Pages/ListDeals.php'\",\"description\":\"...",
-  "error": "Exit code 1",
-  "timestamp": "2026-08-17T17:18:36.690Z",
-  "retry_count": 2
+  "tool_input_preview": "{\"command\":\"/home/brunotrinchao/.claude/squeez/bin/squeez wrap 'cat > /tmp/test_date_filter.php <<'\\\"'\\\"'EOF'\\\"'\\\"'\\n<?php\\nrequire __DIR__.'\\\"'\\\"'/vendor/autoload.php'\\\"'\\\"';\\n$app = require __DIR__....",
+  "error": "Exit code 255\n# squeez hint: /tmp/test_date_filter.php already in context (Read tool, call #8) — reuse cached content if possible\n# squeez [cat] 95→16 tokens (-84%) 51ms [adaptive: Ultra] [budget: ~1036 calls left]\n[squeez: identical to 21d9ef74 at bash#8 — output omitted]",
+  "timestamp": "2026-08-17T18:41:55.801Z",
+  "retry_count": 3
 }
