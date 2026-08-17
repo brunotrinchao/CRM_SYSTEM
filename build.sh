@@ -19,6 +19,21 @@ else
     PHP_BIN="php"
 fi
 
+echo "==> Setting build-time fallback env..."
+# Vars sensíveis do dashboard Vercel (DB_*, CACHE_STORE, SESSION_DRIVER,
+# QUEUE_CONNECTION etc) só são injetadas em runtime (execução da function),
+# não durante o build — aqui elas chegam como string vazia, não ausentes.
+# `artisan package:discover`/`filament:upgrade` (rodados pelo composer
+# post-autoload-dump) fazem boot completo do framework e travam ao resolver
+# um driver vazio ("Cache store [] is not defined."). Fallback só entra se a
+# var estiver vazia/ausente — em runtime real (api/index.php) os valores
+# reais do dashboard prevalecem normalmente.
+export CACHE_STORE="${CACHE_STORE:-array}"
+export SESSION_DRIVER="${SESSION_DRIVER:-array}"
+export QUEUE_CONNECTION="${QUEUE_CONNECTION:-sync}"
+export DB_CONNECTION="${DB_CONNECTION:-sqlite}"
+export DB_DATABASE="${DB_DATABASE:-:memory:}"
+
 echo "==> Preparing Composer..."
 if ! command -v composer &> /dev/null; then
     if [ ! -f composer.phar ]; then

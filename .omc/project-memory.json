@@ -313,6 +313,12 @@
       "type": "file"
     },
     {
+      "path": "vercel.json",
+      "accessCount": 2,
+      "lastAccessed": 1786995188095,
+      "type": "file"
+    },
+    {
       "path": "vendor/filament/filament/src/Pages/Concerns/InteractsWithHeaderActions.php",
       "accessCount": 1,
       "lastAccessed": 1786982969992,
@@ -406,12 +412,6 @@
       "path": "vendor/filament/tables/src/Filters/Concerns/HasIndicators.php",
       "accessCount": 1,
       "lastAccessed": 1786992292962,
-      "type": "file"
-    },
-    {
-      "path": "vercel.json",
-      "accessCount": 1,
-      "lastAccessed": 1786994156890,
       "type": "file"
     },
     {
