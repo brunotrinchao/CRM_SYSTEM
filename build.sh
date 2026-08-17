@@ -1,20 +1,30 @@
 #!/bin/bash
 set -e
 
-echo "==> Verificando ambiente PHP..."
-if command -v php &> /dev/null; then
-    PHP_BIN="php"
-    echo "--> Usando PHP do ambiente da Vercel: $(php -v | head -n 1)"
-else
-    echo "--> PHP não encontrado no PATH global. Verificando binário local..."
+echo "==> Verificando/Baixando PHP CLI estático para o build..."
+if ! command -v php &> /dev/null; then
     if [ ! -f ./php ]; then
-        echo "❌ Erro: Nenhum executável do PHP foi encontrado para o build."
-        exit 1
+        echo "--> Baixando PHP 8.3 CLI..."
+        curl -sSL -o php.tar.gz https://dl.static-php.dev/static-php-cli/common/php-8.3.14-cli-linux-x86_64.tar.gz
+        
+        if [ ! -f php.tar.gz ] || [ ! -s php.tar.gz ]; then
+            echo "❌ Erro: O download do PHP falhou."
+            exit 1
+        fi
+
+        tar -xzf php.tar.gz
+        rm -f php.tar.gz
+        chmod +x ./php
     fi
     PHP_BIN="./php"
+else
+    PHP_BIN="php"
 fi
 
-echo "==> Configurando variáveis de ambiente temporárias para o build..."
+echo "--> Versão do PHP em uso no build:"
+$PHP_BIN -v
+
+echo "==> Configurando variáveis de ambiente temporárias..."
 export CACHE_STORE="${CACHE_STORE:-array}"
 export SESSION_DRIVER="${SESSION_DRIVER:-array}"
 export QUEUE_CONNECTION="${QUEUE_CONNECTION:-sync}"
