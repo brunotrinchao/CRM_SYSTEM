@@ -1,63 +1,129 @@
 <?php
 
-use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 
+define('LARAVEL_START', microtime(true));
+
 try {
-    // Forward Vercel Serverless requests to Laravel
+    /*
+    |--------------------------------------------------------------------------
+    | Diretórios temporários da Vercel
+    |--------------------------------------------------------------------------
+    |
+    | A Vercel possui filesystem somente leitura, exceto /tmp.
+    |
+    */
+
     $tmpStorage = '/tmp/storage';
     $tmpBootstrapCache = '/tmp/bootstrap/cache';
 
     $directories = [
-        $tmpStorage . '/framework/views',
-        $tmpStorage . '/framework/sessions',
+        $tmpStorage,
+        $tmpStorage . '/app',
+        $tmpStorage . '/framework',
         $tmpStorage . '/framework/cache',
+        $tmpStorage . '/framework/sessions',
+        $tmpStorage . '/framework/views',
         $tmpStorage . '/logs',
         $tmpBootstrapCache,
     ];
 
     foreach ($directories as $directory) {
         if (!is_dir($directory)) {
-            @mkdir($directory, 0755, true);
+            mkdir($directory, 0755, true);
         }
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Variáveis de ambiente
+    |--------------------------------------------------------------------------
+    */
+
     putenv("APP_STORAGE={$tmpStorage}");
+
     putenv("VIEW_COMPILED_PATH={$tmpStorage}/framework/views");
+
     putenv("APP_CONFIG_CACHE={$tmpBootstrapCache}/config.php");
-    putenv("APP_SERVICES_CACHE={$tmpBootstrapCache}/services.php");
+    putenv("APP_EVENTS_CACHE={$tmpBootstrapCache}/events.php");
     putenv("APP_PACKAGES_CACHE={$tmpBootstrapCache}/packages.php");
-    putenv("LOG_CHANNEL=stderr");
+    putenv("APP_SERVICES_CACHE={$tmpBootstrapCache}/services.php");
 
-    define('LARAVEL_START', microtime(true));
+    putenv('LOG_CHANNEL=stderr');
 
-    if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-        require __DIR__ . '/../vendor/autoload.php';
-    } elseif (file_exists(__DIR__ . '/vendor/autoload.php')) {
-        require __DIR__ . '/vendor/autoload.php';
-    } else {
-        throw new \Exception('vendor/autoload.php não encontrado no ambiente Vercel Lambda.');
+    /*
+    |--------------------------------------------------------------------------
+    | Laravel
+    |--------------------------------------------------------------------------
+    */
+
+    $basePath = dirname(__DIR__);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Composer
+    |--------------------------------------------------------------------------
+    */
+
+    $autoload = $basePath . '/vendor/autoload.php';
+
+    if (!file_exists($autoload)) {
+        throw new RuntimeException(
+            'vendor/autoload.php não encontrado. Verifique o build da Vercel.'
+        );
     }
 
-    $bootstrapPath = file_exists(__DIR__ . '/../bootstrap/app.php')
-        ? __DIR__ . '/../bootstrap/app.php'
-        : __DIR__ . '/bootstrap/app.php';
+    require $autoload;
 
-    /** @var Application $app */
-    $app = require_once $bootstrapPath;
+    /*
+    |--------------------------------------------------------------------------
+    | Bootstrap
+    |--------------------------------------------------------------------------
+    */
+
+    $bootstrap = $basePath . '/bootstrap/app.php';
+
+    if (!file_exists($bootstrap)) {
+        throw new RuntimeException(
+            'bootstrap/app.php não encontrado.'
+        );
+    }
+
+    $app = require $bootstrap;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Storage temporário
+    |--------------------------------------------------------------------------
+    */
 
     $app->useStoragePath($tmpStorage);
 
-    $app->handleRequest(Request::capture());
-} catch (\Throwable $e) {
+    /*
+    |--------------------------------------------------------------------------
+    | Processa a requisição
+    |--------------------------------------------------------------------------
+    */
+
+    $app->handleRequest(
+        Request::capture()
+    );
+
+} catch (Throwable $e) {
+
     http_response_code(500);
-    header('Content-Type: text/html; charset=utf-8');
-    echo '<div style="font-family: sans-serif; padding: 24px; background: #fff1f2; color: #9f1239; border: 1px solid #f43f5e; border-radius: 8px; margin: 20px;">';
-    echo '<h2 style="margin-top:0;">⚠️ Erro de Inicialização no Vercel (Laravel)</h2>';
-    echo '<p><strong>Mensagem:</strong> ' . htmlspecialchars($e->getMessage()) . '</p>';
-    echo '<p><strong>Arquivo:</strong> ' . htmlspecialchars($e->getFile()) . ':' . $e->getLine() . '</p>';
-    echo '<h3>Stack Trace:</h3>';
-    echo '<pre style="background: #ffe4e6; padding: 12px; border-radius: 4px; overflow-x: auto;">' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
-    echo '</div>';
-    exit(1);
+
+    header('Content-Type: text/plain; charset=utf-8');
+
+    echo "Erro ao iniciar Laravel na Vercel\n\n";
+
+    echo $e->getMessage() . "\n\n";
+
+    echo "Arquivo: "
+        . $e->getFile()
+        . ':'
+        . $e->getLine()
+        . "\n\n";
+
+    echo $e->getTraceAsString();
 }
