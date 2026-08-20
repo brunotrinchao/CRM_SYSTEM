@@ -1,26 +1,26 @@
 <x-filament::widget>
     <x-filament::section>
-        {{-- Cabeçalho do Widget com Título e Link --}}
-        <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 1rem; border-bottom: 1px solid rgba(107, 114, 128, 0.2);">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
+        {{-- Cabeçalho do Widget com Título e Ícone --}}
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+            <div class="flex items-center gap-2">
                 <x-filament::icon
                     icon="heroicon-o-funnel"
                     class="w-5 h-5 text-primary-500"
                 />
-                <span style="font-size: 0.875rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">
+                <span class="text-xs font-bold tracking-wider uppercase text-slate-700 dark:text-slate-200">
                     Funil de Vendas
                 </span>
             </div>
         </div>
 
-        {{-- Grade de Estágios usando Flexbox com quebra automática --}}
-        <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+        {{-- Estágios em colunas no desktop (5 colunas para os 5 estágios), adaptável no mobile --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mt-4">
             @foreach ($stages as $stage)
-                <div style="flex: 1; min-width: 180px; padding: 1rem; background-color: var(--fi-widget-bg, #ffffff); border: 1px solid rgba(107, 114, 128, 0.2); border-radius: 0.75rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
+                <div class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col justify-between shadow-sm space-y-3">
                     
                     {{-- Topo do Card: Título e Indicador Colorido --}}
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
-                        <span style="font-size: 0.875rem; font-weight: 600;">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
                             {{ $stage['title'] }}
                         </span>
                         
@@ -31,24 +31,24 @@
                                 'primary' => '#2563eb',
                                 'success' => '#10b981',
                                 'danger'  => '#f43f5e',
-                                default   => '#475569',
+                                default   => '#64748b',
                             };
                         @endphp
-                        <span style="width: 10px; height: 10px; border-radius: 9999px; background-color: {{ $hexColor }}; display: inline-block;"></span>
+                        <span class="w-2.5 h-2.5 rounded-full inline-block shrink-0" style="background-color: {{ $hexColor }};"></span>
                     </div>
 
                     {{-- Corpo do Card: Quantidade e Valor Financeiro --}}
                     <div>
-                        <div style="display: flex; align-items: baseline; gap: 0.375rem;">
-                            <span style="font-size: 1.25rem; font-weight: 700;">
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-lg font-extrabold text-slate-900 dark:text-slate-100">
                                 {{ $stage['count'] }}
                             </span>
-                            <span style="font-size: 0.75rem; color: #6b7280;">
-                                negócios
+                            <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                                {{ $stage['count'] === 1 ? 'negócio' : 'negócios' }}
                             </span>
                         </div>
                         
-                        <div style="margin-top: 0.25rem; font-size: 0.875rem; font-weight: 700; color: #059669; font-family: 'Space Mono', monospace;">
+                        <div class="mt-1 text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 font-finance">
                             R$ {{ number_format($stage['value'], 2, ',', '.') }}
                         </div>
                     </div>

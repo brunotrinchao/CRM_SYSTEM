@@ -197,7 +197,13 @@ class DealsKanban extends Component implements HasActions, HasSchemas
     public function render()
     {
         $query = Deal::query()
-            ->with(['client', 'user', 'discountRequests', 'products']);
+            ->with(['client', 'user', 'discountRequests', 'products'])
+            ->reorder()
+            ->orderBy('created_at', 'desc')
+            ->when(
+                Auth::check() && Auth::user()?->profile === UserProfile::USER,
+                fn ($q) => $q->where('user_id', Auth::id())
+            );
 
         // 1. Busca por texto (título, cliente, vendedor, produtos)
         if (filled($this->search)) {

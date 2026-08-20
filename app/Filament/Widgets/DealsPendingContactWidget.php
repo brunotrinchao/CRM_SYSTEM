@@ -123,7 +123,7 @@ class DealsPendingContactWidget extends Widget implements HasActions, HasForms
             ->modalHeading('Registrar Novo Contato')
             ->modalWidth(Width::Medium)
             ->slideOver()
-            ->schema(fn ($schema) => NotesForm::configure($schema))
+            ->schema(fn ($schema) => NotesForm::configure($schema, true))
             ->action(function (array $data, array $arguments) {
                 $dealId = $arguments['deal_id'] ?? null;
                 if (! $dealId) {

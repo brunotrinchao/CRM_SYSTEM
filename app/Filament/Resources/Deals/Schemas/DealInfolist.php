@@ -117,6 +117,7 @@ class DealInfolist
                                                                     ->schema(fn(Schema $schema) => ProductInfolist::configure($schema))
                                                                     ->fillForm(fn($record): array => $record->load(['category'])->toArray())
                                                                     ->slideOver()
+                                                                    ->modalSubmitAction(false)
                                                                     ->model(Product::class)
                                                                     ->stickyModalFooter()
                                                                     ->stickyModalHeader()
@@ -129,55 +130,20 @@ class DealInfolist
                                             ->extraAttributes(['class' => 'item-card--form-panel'])
                                             ->columns(3)
                                             ->schema([
-                                                Money::make('total_value', 'Subtotal'),
-                                                // Exibe o desconto formatado dependendo se é porcentagem ou valor fixo
-                                                Money::make('discount_display')
-                                                    ->label('Desconto')
+                                                Money::make('financial_subtotal', 'Subtotal')
                                                     ->getStateUsing(function ($record) {
-                                                        if (!$record)
-                                                            return 'R$ 0,00';
-
-                                                        $discount = $record->discount ?? 0;
-                                                        $type = $record->discount_type ?? 'VALUE'; // Ou o campo que define o tipo
-                                            
-                                                        if ($type === 'PERCENT') {
-                                                            return "{$discount}%";
-                                                        }
-
-                                                        return 'R$ ' . number_format($discount, 2, ',', '.');
+                                                        if (!$record) return 0;
+                                                        return static::calculateFinancials($record)['subtotal'];
                                                     }),
-
-                                                // Calcula o subtotal dinamicamente com base no tipo de desconto
-                                                Money::make('subtotal', 'Total')
-                                                ->hiddenLabel()
+                                                Money::make('financial_discount', 'Desconto')
                                                     ->getStateUsing(function ($record) {
-                                                        if (!$record)
-                                                            return 0;
-
-
-                                                        $discount = DiscountRequest::query()
-                                                        ->where('deal_id', $record->id)
-                                                        ->where('status', DiscountRequestStatus::APPROVED)
-                                                        ->latest()
-                                                        ->first();
-
-
-                                                        $price = $record->total_value ?? 0;
-
-                                                        if(!$discount){
-                                                            return $price;
-                                                        }
-
-                                                        $discountValue = $record->discount ?? 0;
-                                                        $discountType = $discount?->type;
-
-                                                        if ($discountType === DiscountRequestType::PERCENT) {
-                                                            // Subtotal = Preço - (Preço * (Desconto / 100))
-                                                            return $price - ($price * ($discountValue / 100));
-                                                        }
-
-                                                        // Subtotal = Preço - Valor do Desconto Fixo
-                                                        return max(0, $price - $discountValue);
+                                                        if (!$record) return 0;
+                                                        return static::calculateFinancials($record)['discount'];
+                                                    }),
+                                                Money::make('financial_total', 'Total')
+                                                    ->getStateUsing(function ($record) {
+                                                        if (!$record) return 0;
+                                                        return static::calculateFinancials($record)['total'];
                                                     })
                                                     ->size(TextSize::Large)
                                                     ->color(Color::Blue),
@@ -331,5 +297,69 @@ class DealInfolist
 
                     ])
             ]);
+    }
+
+    public static function calculateFinancials(Deal $record): array
+    {
+        if (method_exists($record, 'relationLoaded')) {
+            if (!$record->relationLoaded('products')) {
+                $record->loadMissing('products');
+            }
+            if (!$record->relationLoaded('discountRequests')) {
+                $record->loadMissing('discountRequests');
+            }
+        }
+
+        $subtotal = 0;
+        $pivotDiscount = 0;
+
+        if ($record->products && $record->products->isNotEmpty()) {
+            foreach ($record->products as $product) {
+                $qty = (float) ($product->pivot->quantity ?? $product->quantity ?? 1);
+                $unitPrice = (float) ($product->pivot->unit_price ?? $product->price ?? 0);
+                $itemSubtotal = $unitPrice * $qty;
+                $itemDiscount = (float) ($product->pivot->discount ?? 0);
+
+                $subtotal += $itemSubtotal;
+                $pivotDiscount += $itemDiscount;
+            }
+        } else {
+            $subtotal = (float) ($record->total_value ?? 0);
+        }
+
+        $subtotal = round($subtotal, 2);
+        $totalValue = round((float) ($record->total_value ?? 0), 2);
+        $dealDiscount = round((float) ($record->discount ?? 0), 2);
+
+        $approvedReq = $record->discountRequests
+            ? $record->discountRequests->where('status', DiscountRequestStatus::APPROVED)->first()
+            : DiscountRequest::query()
+                ->where('deal_id', $record->id)
+                ->where('status', DiscountRequestStatus::APPROVED)
+                ->latest()
+                ->first();
+
+        if ($approvedReq) {
+            if ($approvedReq->type === DiscountRequestType::PERCENT) {
+                $dealDiscount = max($dealDiscount, round($subtotal * ((float) $approvedReq->amount / 100), 2));
+            } else {
+                $dealDiscount = max($dealDiscount, round((float) $approvedReq->amount, 2));
+            }
+        }
+
+        $diffDiscount = ($subtotal - $totalValue) >= 0.01 ? round($subtotal - $totalValue, 2) : 0;
+        $totalDiscount = max($pivotDiscount, $dealDiscount, $diffDiscount);
+
+        if ((!$record->products || $record->products->isEmpty()) && $totalDiscount > 0 && abs($subtotal - $totalValue) < 0.01) {
+            $subtotal = round($totalValue + $totalDiscount, 2);
+        }
+
+        $total = max(0, round($subtotal - $totalDiscount, 2));
+
+        return [
+            'subtotal' => $subtotal,
+            'discount' => $totalDiscount,
+            'total' => $total,
+        ];
     }
 }

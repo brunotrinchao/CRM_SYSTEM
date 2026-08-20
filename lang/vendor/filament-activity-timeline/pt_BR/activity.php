@@ -51,7 +51,7 @@ return [
         'minimum_stock' => 'Estoque Mínimo',
         'active' => 'Ativo',
         // DealNote fields
-        'interaction_type' => 'Tipo de Interação',
+        'interaction_type' => 'Canal',
         'content' => 'Conteúdo',
         'next_follow_up_date' => 'Próximo Contato',
         'next_action' => 'Próxima Ação',

@@ -52,10 +52,7 @@ class DealsTable
     public static function configure(Table $table): Table
     {
         return $table
-            // ->modifyQueryUsing(fn (Builder $query) => $query
-            //     ->orderByRaw("CASE status WHEN 'PENDING' THEN 1 WHEN 'NEGOTIATING' THEN 2 WHEN 'WON' THEN 3 WHEN 'LOST' THEN 4 WHEN 'CANCELLED' THEN 5 ELSE 6 END")
-            //     ->orderBy('created_at', 'desc')
-            // )
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('title')
                     ->label('Título')
@@ -81,10 +78,10 @@ class DealsTable
                     ->label('Vendedor Responsável')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('creator.name')
-                    ->label('Criado Por')
-                    ->searchable()
-                    ->sortable(),
+                // TextColumn::make('creator.name')
+                //     ->label('Criado Por')
+                //     ->searchable()
+                //     ->sortable(),
                 TextColumn::make('total_value')
                     ->label('Valor Total')
                     ->money('BRL')
@@ -93,6 +90,7 @@ class DealsTable
                 TextColumn::make('created_at')
                     ->label('Criado em')
                     ->date('d/m/Y')
+                    ->sortable()
             ])
             ->recordClasses(function (Deal $record) {
                 // Pega a primeira solicitação pendente ou ajusta conforme sua regra de negócio
@@ -198,7 +196,7 @@ class DealsTable
                     extraFooterActions: [
                         fn(Deal $record) => Action::make('whatsapp_message')
                             ->label('Enviar WhatsApp')
-                            ->icon(Phosphor::WhatsappLogoThin)
+                            ->icon(Phosphor::WhatsappLogo)
                             ->color(Color::Emerald)
                             ->size(Size::ExtraLarge)
                             ->visible(in_array($record->status, [DealStatus::NEGOTIATING]))
@@ -344,7 +342,7 @@ class DealsTable
                             modal: false,
                             name: 'request_discount',
                             labelButton: 'Solicitar', // Ajustado para o padrão comum (verifique se na sua helper é labelButon ou label)
-                            iconButton: Phosphor::SealPercentFill,
+                            iconButton: Phosphor::SealPercent,
                             defaults: fn() => ['deal_id' => $record->id],
                             disabled: ($record->hasPendingDiscount() && Auth::user()?->profile === UserProfile::USER->value),
                         )
@@ -354,12 +352,13 @@ class DealsTable
                             ]),
                         fn(Deal $record) => SimpleActions::getCreateModal(
                             width: Width::Large,
-                            schemaCallback: fn($schema) => NotesForm::configure($schema),
+                            schemaCallback: fn($schema) => NotesForm::configure($schema, true),
                             actionCallback: fn(array $data) => DealNoteService::create($data),
                             recordName: 'Contato',
                             model: DealNote::class,
                             modal: false,
-                            iconButton: Phosphor::Phone,
+                            name: 'create_deal_note_modal',
+                            iconButton: Phosphor::PhonePlus,
                             defaults: fn() => ['deal_id' => $record->id],
                         )
                             ->size(Size::Small)
@@ -371,7 +370,7 @@ class DealsTable
                             ->modalSubmitActionLabel('Transferir')
                             ->modalCancelAction(false)
                             ->color(Color::Neutral)
-                            ->icon(Phosphor::ArrowsLeftRightThin)
+                            ->icon(Phosphor::ArrowsLeftRight)
                             ->size(Size::ExtraLarge)
                             ->schema(fn($schema) => DealTransfer::configure($schema))
                             ->hidden(Auth::user()->profile === UserProfile::USER)
@@ -402,7 +401,7 @@ class DealsTable
                             }),
                         fn(Deal $record) => ActivityTimelineAction::make()
                             ->withRelations(['client', 'products', 'user', 'discountRequests', 'notesList'])
-                            ->icon(Phosphor::ClockCounterClockwiseThin)
+                            ->icon(Phosphor::ClockCounterClockwise)
                             ->size(Size::ExtraLarge)
                             ->label('Histórico do negócio'),
                     ]

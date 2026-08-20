@@ -40,7 +40,7 @@ class ListDeals extends ListRecords
 
     protected string $view = 'filament.resources.deals.pages.list-deals';
 
-    public string $activeView = 'table';
+    public string $activeView = 'listagem';
 
     public array $filters = [];
 
@@ -382,11 +382,12 @@ class ListDeals extends ListRecords
                 ]),
                 fn (Deal $record) => SimpleActions::getCreateModal(
                     width: Width::Large,
-                    schemaCallback: fn ($schema) => NotesForm::configure($schema),
+                    schemaCallback: fn ($schema) => NotesForm::configure($schema, isDealForm: true),
                     actionCallback: fn (array $data) => DealNoteService::create($data),
                     recordName: 'Contato',
                     model: DealNote::class,
                     modal: false,
+                    name: 'create_deal_note_modal',
                     iconButton: Phosphor::Phone,
                     defaults: fn () => ['deal_id' => $record->id],
                     afterCreate: fn ($createdRecord, $livewire) => static::promoteFromPendingToNegotiating($record, $livewire),
@@ -444,18 +445,19 @@ class ListDeals extends ListRecords
                 ->modalHeading('Guia & Regras dos Negócios')
                 ->modalIcon(Phosphor::BookOpenTextDuotone)
                 ->modalWidth(Width::FiveExtraLarge)
+                ->slideOver()
                 ->modalSubmitAction(false)
                 ->modalCancelActionLabel('Entendi')
                 ->modalContent(view('filament.modals.deal-rules-help')),
-            SimpleActions::getCreateModal(
-                width: Width::Large,
-                schemaCallback: fn ($schema) => DealForm::configure($schema),
+            SimpleActions::getWizardCreateModal(
+                width: Width::ExtraLarge,
+                steps: DealForm::getSteps(),
                 actionCallback: fn (array $data) => DealService::create($data),
                 recordName: 'Negócio',
                 model: Deal::class,
                 modal: false,
-            )
-            ->hidden(auth()->user()->profile === UserProfile::USER),
+                name: 'create_deal_modal',
+            ),
         ];
     }
 

@@ -17,12 +17,20 @@ class UserForm
             ->components([
                 TextInput::make('name', 'Nome', [
                     'prefixIcon' => Heroicon::User,
-                    'disabled' => true,
+                    'disabled' => fn ($record) => $record !== null,
+                    'required' => true,
                 ]),
                 TextInput::make('email', 'E-mail', [
                     'type' => 'email',
                     'prefixIcon' => Heroicon::Envelope,
-                    'disabled' => true,
+                    'disabled' => fn ($record) => $record !== null,
+                    'required' => true,
+                ]),
+                TextInput::make('password', 'Senha', [
+                    'type' => 'password',
+                    'prefixIcon' => Heroicon::LockClosed,
+                    'required' => fn ($record) => $record === null,
+                    'hidden' => fn ($record) => $record !== null,
                 ]),
                 Select::make('profile', 'Perfil de Acesso', [
                     'options' => function () {

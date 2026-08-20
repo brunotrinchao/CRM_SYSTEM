@@ -55,6 +55,7 @@ class TextInput
 
         if ($isPhone) {
             $field = PhoneField::make($name)
+            ->placeholder('Número de telefone')
                 ->defaultCountry($config['defaultCountry'] ?? 'BR');
         } else {
             $field = FlexTextInput::make($name);
@@ -82,24 +83,28 @@ class TextInput
             }
         }
 
-        if ($config['required'] ?? false) {
-            $field->required();
+        if (array_key_exists('required', $config)) {
+            $field->required($config['required']);
         }
 
-        if ($config['default'] ?? null) {
+        if (array_key_exists('default', $config)) {
             $field->default($config['default']);
         }
 
-        if ($config['helperText'] ?? null) {
+        if (array_key_exists('helperText', $config)) {
             $field->helperText($config['helperText']);
         }
 
-        if ($config['placeholder'] ?? null) {
+        if (array_key_exists('placeholder', $config)) {
             $field->placeholder($config['placeholder']);
         }
 
-        if ($config['disabled'] ?? false) {
-            $field->disabled();
+        if (array_key_exists('disabled', $config)) {
+            $field->disabled($config['disabled']);
+        }
+
+        if (array_key_exists('hidden', $config)) {
+            $field->hidden($config['hidden']);
         }
 
         // Métodos exclusivos do FlexTextInput (TextInput base)

@@ -1,19 +1,17 @@
 <x-filament-panels::page>
 
-    <x-filament::tabs label="Content tabs">
-
+    <x-filament::tabs>
         {{-- Aba 1: Listagem --}}
-        <x-filament::tabs.item :active="$activeView === 'listagem'" wire:click="$set('activeTab', 'listagem')"
+        <x-filament::tabs.item :active="$activeView === 'listagem'" wire:click="$set('activeView', 'listagem')"
             icon="heroicon-o-table-cells">
             Listagem
         </x-filament::tabs.item>
 
         {{-- Aba 2: Kanban --}}
-        <x-filament::tabs.item :active="$activeView === 'kanban'" wire:click="$set('activeTab', 'kanban')"
+        <x-filament::tabs.item :active="$activeView === 'kanban'" wire:click="$set('activeView', 'kanban')"
             icon="heroicon-o-squares-2x2">
             Kanban
         </x-filament::tabs.item>
-
     </x-filament::tabs>
 
 
@@ -87,8 +85,7 @@
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold text-slate-600 dark:text-slate-400 block">Status</label>
                     <x-filament::input.wrapper>
-                        <x-filament::input.select wire:model.live="tableFilters.status.values" multiple
-                            class="py-1">
+                        <x-filament::input.select wire:model.live="tableFilters.status.values" multiple class="py-1">
                             @foreach ($statusOptions as $value => $label)
                                 <option value="{{ $value }}">{{ $label }}</option>
                             @endforeach
@@ -143,33 +140,12 @@
         </x-filament::modal>
     </div>
 
-    <div x-data="{ activeView: $wire.entangle('activeView') }" class="space-y-4">
-        {{-- Switcher de Visão: Tabela x Kanban --}}
-        {{-- <div class="flex items-center justify-between gap-4 py-2 border-b border-slate-200 dark:border-slate-800">
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Modo de Exibição:</span>
-                <div class="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-bold">
-                    <button type="button" @click="activeView = 'table'"
-                        :class="activeView === 'table' ? 'bg-white dark:bg-slate-900 text-primary-600 dark:text-primary-400 shadow-sm font-extrabold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
-                        class="px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5">
-                        <x-filament::icon icon="heroicon-o-table-cells" class="h-4 w-4" />
-                        Listagem
-                    </button>
-                    <button type="button" @click="activeView = 'kanban'"
-                        :class="activeView === 'kanban' ? 'bg-white dark:bg-slate-900 text-primary-600 dark:text-primary-400 shadow-sm font-extrabold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
-                        class="px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5">
-                        <x-filament::icon icon="heroicon-o-squares-2x2" class="h-4 w-4" />
-                        Kanban
-                    </button>
-                </div>
-            </div>
-        </div> --}}
-
-        {{-- Visão Kanban --}}
-        @if ($activeTab === 'listagem')
+    <div class="space-y-4 mt-4">
+        {{-- Visão Listagem / Tabela --}}
+        @if ($activeView === 'listagem')
             {{ $this->table }}
 
-            {{-- Visão Tabela --}}
+            {{-- Visão Kanban --}}
         @else
             <livewire:deals-kanban :table-filters="$tableFilters" :table-search="$tableSearch" />
         @endif
@@ -178,4 +154,6 @@
     @if (count($getFooterWidgets = $this->getFooterWidgets()))
         <x-filament-widgets::widgets :widgets="$getFooterWidgets" :data="$this->getFooterWidgetsData()" />
     @endif
+
+    <x-filament-actions::modals />
 </x-filament-panels::page>

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Products\Tables;
 
+use App\Enums\UserProfile;
 use App\Filament\Actions\SimpleActions;
 use App\Filament\Resources\Products\Schemas\ProductForm;
 use App\Filament\Resources\Products\Schemas\ProductInfolist;
@@ -19,6 +20,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use ToneGabes\Filament\Icons\Enums\Phosphor;
 
 class ProductsTable
@@ -57,7 +59,8 @@ class ProductsTable
                     ->boolean(),
             ])
             ->filters([
-                TrashedFilter::make(),
+                TrashedFilter::make()
+                    ->visible(fn(): bool => Auth::user()->profile !== UserProfile::USER->value),
             ])
             ->recordUrl(null)
             ->recordAction('custom_view')
@@ -70,7 +73,7 @@ class ProductsTable
                     model: Product::class,
                     recordName: 'Produto',
                     modal: false,
-                    relations: ['photos']
+                    relations: ['photos'],
                 )
             ])
             ->toolbarActions([

@@ -14,6 +14,8 @@ class DealService
 {
     public static function create(array $data): Deal
     {
+        $noteData = self::extractNoteData($data);
+
         if (empty($data['created_by']) && Auth::check()) {
             $data['created_by'] = Auth::id();
         }
@@ -27,13 +29,21 @@ class DealService
 
         $deal = Deal::create($data);
 
-        self::syncProducts($deal, $products);
+        if(!empty($products)){
+            self::syncProducts($deal, $products);
+        }
+
+        if(!empty($noteData)){
+            self::handleNote($deal, $noteData);
+        }
 
         return $deal;
     }
 
     public static function update(Deal $deal, array $data): Deal
     {
+        $noteData = self::extractNoteData($data);
+
         if (isset($data['status'])) {
             $newStatus = is_string($data['status']) ? DealStatus::tryFrom($data['status']) : $data['status'];
 
@@ -66,7 +76,43 @@ class DealService
             self::syncProducts($deal, array_values($products));
         }
 
+        self::handleNote($deal, $noteData);
+
         return $deal;
+    }
+
+    private static function extractNoteData(array &$data): array
+    {
+        $fields = ['interaction_type', 'contact_date', 'content', 'next_follow_up_date', 'next_action'];
+        $noteData = [];
+        foreach ($fields as $field) {
+            if (array_key_exists($field, $data)) {
+                $noteData[$field] = $data[$field];
+                unset($data[$field]);
+            }
+        }
+        return $noteData;
+    }
+
+    private static function handleNote(Deal $deal, array $noteData): void
+    {
+        $hasContent = !empty($noteData['content'])
+            || !empty($noteData['interaction_type'])
+            || !empty($noteData['contact_date'])
+            || !empty($noteData['next_follow_up_date'])
+            || !empty($noteData['next_action']);
+
+        if ($hasContent) {
+            $payload = array_merge([
+                'deal_id' => $deal->id,
+                'user_id' => Auth::id() ?? $deal->user_id,
+                'interaction_type' => \App\Enums\ChannelNote::OTHER->value,
+                'content' => 'Contato registrado.',
+                'contact_date' => now(),
+            ], array_filter($noteData, fn ($val) => !is_null($val) && $val !== ''));
+
+            DealNoteService::create($payload);
+        }
     }
 
     public static function transfer(Deal $deal, User $user): Deal

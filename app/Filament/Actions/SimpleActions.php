@@ -107,6 +107,75 @@ class SimpleActions
     }
 
     /**
+     * Retorna uma Ação de Criação com passos (Wizard) cujos botões de navegação
+     * (Anterior, Próximo e Cadastrar) ficam posicionados no rodapé (footer) do Modal / SlideOver.
+     */
+    public static function getWizardCreateModal(
+        Width $width,
+        array|callable $steps,
+        ?callable $actionCallback = null,
+        string $recordName = 'Novo',
+        bool $modal = false,
+        ?string $model = null,
+        ?callable $afterCreate = null,
+        array|callable|null $defaults = null,
+        ?string $buttonColor = 'primary',
+        string $name = 'custom_wizard_create',
+        string $labelButton = 'Cadastrar',
+        bool $disabled = false,
+        Phosphor | Heroicon $iconButton = Phosphor::Plus
+    ): Action {
+        $modalIcon = new ($model);
+        $action = Action::make($name)
+            ->label("{$recordName}")
+            ->disabled($disabled)
+            ->modalWidth($width)
+            ->modalIcon($modalIcon->getIcon())
+            ->modalIconColor('primary')
+            ->modalCancelAction(false)
+            ->modalFooterActionsAlignment(\Filament\Support\Enums\Alignment::End)
+            ->modalSubmitAction(
+                fn($action) => $action
+                    ->label($labelButton)
+                    ->icon(Phosphor::Check)
+                    ->color(Color::Blue)
+                    ->size(Size::ExtraLarge)
+            )
+            ->modalCancelAction(false)
+            ->icon($iconButton)
+            ->color($buttonColor)
+            ->steps($steps)
+            ->stickyModalFooter()
+            ->stickyModalHeader()
+            ->slideOver(!$modal)
+            ->successNotificationTitle("{$recordName} criado com sucesso.")
+            ->failureNotificationTitle("Não foi possível criar {$recordName}.");
+
+        if ($model) {
+            $action->model($model);
+        }
+
+        if ($actionCallback) {
+            $action->action(function (array $data, Action $action) use ($actionCallback, $afterCreate, $defaults) {
+                if ($defaults !== null) {
+                    $resolved = is_callable($defaults) ? call_user_func($defaults) : $defaults;
+                    $data = array_merge($resolved, $data);
+                }
+
+                $record = call_user_func($actionCallback, $data);
+
+                if ($afterCreate && $record instanceof \Illuminate\Database\Eloquent\Model) {
+                    call_user_func($afterCreate, $record, $action->getLivewire());
+                }
+
+                $action->getLivewire()->dispatch('$refresh');
+            });
+        }
+
+        return $action;
+    }
+
+    /**
      * Seta um campo no form do componente "pai" que abriu o modal de criação.
      *
      * Suporta dois contextos:
@@ -383,6 +452,57 @@ class SimpleActions
             ->slideOver(!$modal)
             ->stickyModalFooter()
             ->stickyModalHeader();
+
+        if ($model) {
+            $action->model($model);
+        }
+
+        return $action;
+    }
+
+    public static function getReadOnlyViewInfolist(
+        Width $width,
+        ?callable $schemaViewCallback = null,
+        ?string $model = null,
+        string $recordName = 'Registro',
+        bool $modal = false,
+        array $relations = []
+    ): Action {
+        $modalIcon = new ($model);
+        $action = Action::make('custom_read_only_view')
+            ->label("Visualizar")
+            ->modalHeading("Visualizar {$recordName}")
+            ->modalWidth($width)
+            ->modalIcon($modalIcon->getIcon())
+            ->icon('heroicon-o-information-circle')
+            ->color(Color::Neutral)
+            ->url(null)
+            ->record(function (Action $action): ?Model {
+                $schemaComponent = $action->getSchemaComponent();
+
+                if (!$schemaComponent) {
+                    return null;
+                }
+
+                $record = $schemaComponent->getRecord();
+
+                if ($record instanceof Model && method_exists($schemaComponent, 'getName')) {
+                    $relationName = (string) str($schemaComponent->getName())->before('.');
+
+                    if (filled($relationName) && method_exists($record, $relationName) && $record->getRelationValue($relationName) instanceof Model) {
+                        return $record->getRelationValue($relationName);
+                    }
+                }
+
+                return $record;
+            })
+            ->schema($schemaViewCallback)
+            ->fillForm(fn(?Model $record): array => ($record && $relations) ? $record->load($relations)->toArray() : [])
+            ->slideOver(!$modal)
+            ->stickyModalFooter()
+            ->stickyModalHeader()
+            ->modalSubmitAction(false)
+            ->modalCancelAction(false);
 
         if ($model) {
             $action->model($model);

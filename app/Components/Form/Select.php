@@ -46,24 +46,24 @@ class Select
                 ->preload($config['preload'] ?? true);
         }
 
-        if ($config['required'] ?? false) {
-            $field->required();
+        if (array_key_exists('required', $config)) {
+            $field->required($config['required']);
         }
 
         if (array_key_exists('default', $config)) {
             $field->default($config['default']);
         }
 
-        if ($config['placeholder'] ?? null) {
+        if (array_key_exists('placeholder', $config)) {
             $field->placeholder($config['placeholder']);
         }
 
-        if ($config['helperText'] ?? null) {
+        if (array_key_exists('helperText', $config)) {
             $field->helperText($config['helperText']);
         }
 
-        if ($config['disabled'] ?? false) {
-            $field->disabled();
+        if (array_key_exists('disabled', $config)) {
+            $field->disabled($config['disabled']);
         }
 
         return $field;

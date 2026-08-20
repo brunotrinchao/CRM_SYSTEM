@@ -57,6 +57,7 @@ class ProductForm
                                             recordName: 'Categoria',
                                             modal: true,
                                             model: \App\Models\Category::class,
+                                            name: 'create_category_modal',
                                             afterCreate: function (\Illuminate\Database\Eloquent\Model $record, $livewire) {
                                                 SimpleActions::setFieldOnParentForm($livewire, 'category_id', $record->id);
                                             }

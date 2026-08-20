@@ -24,7 +24,8 @@ class ListClients extends ListRecords
                 actionCallback: fn (array $data) => ClientService::create($data),
                 recordName: 'Cliente',
                 model: Client::class,
-                modal: false
+                modal: false,
+                name: 'create_client_modal',
             )
         ];
     }

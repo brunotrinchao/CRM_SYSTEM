@@ -85,7 +85,12 @@ class Deal extends Model implements ProvidesActivityTitle
 
     public function notesList()
     {
-        return $this->hasMany(DealNote::class);
+        return $this->hasMany(DealNote::class)
+            ->orderBy('created_at', 'desc')
+            ->when(
+                Auth::check() && Auth::user()?->profile === \App\Enums\UserProfile::USER,
+                fn ($query) => $query->where('user_id', Auth::id())
+            );
     }
 
     public function discountRequests()

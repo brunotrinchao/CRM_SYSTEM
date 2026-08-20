@@ -34,17 +34,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-
-        if ($this->app->environment('production')) {
-            URL::forceScheme('https');
+        if (request()->hasHeader('x-forwarded-host')) {
+            $host = request()->header('x-forwarded-host');
+            $proto = request()->header('x-forwarded-proto', 'https');
+            URL::forceRootUrl("{$proto}://{$host}");
+            URL::forceScheme($proto);
+        } else {
+            URL::forceRootUrl(request()->schemeAndHttpHost());
+            URL::forceScheme(request()->isSecure() ? 'https' : 'http');
         }
 
-       Category::observe(CategoryObserver::class);
-       Client::observe(ClientObserver::class);
-       Product::observe(ProductObserver::class);
-       Deal::observe(DealObserver::class);
-       DealNote::observe(NoteObserver::class);
-       Address::observe(AddressObserver::class);
-       DiscountRequest::observe(DiscountRequestObserver::class);
+        Category::observe(CategoryObserver::class);
+        Client::observe(ClientObserver::class);
+        Product::observe(ProductObserver::class);
+        Deal::observe(DealObserver::class);
+        DealNote::observe(NoteObserver::class);
+        Address::observe(AddressObserver::class);
+        DiscountRequest::observe(DiscountRequestObserver::class);
     }
 }

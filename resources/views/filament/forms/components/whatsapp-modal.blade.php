@@ -149,7 +149,7 @@
     @endphp
 
     <!-- SEÇÃO SUPERIOR: Botões de Ação Rápida e Fotos Anexadas dos Produtos (Mobile & Desktop) -->
-    <div class="space-y-3">
+    <div class="space-y-3 whatsapp-preview-copy">
         
         <div class="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-200/60 dark:border-emerald-800/40">
             <span class="text-xs font-semibold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
@@ -310,6 +310,17 @@
         @media (min-width: 768px) {
             .whatsapp-preview-container {
                 display: block !important;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .whatsapp-preview-copy {
+                display: block !important;
+            }
+        }
+        @media (min-width: 768px) {
+            .whatsapp-preview-copy {
+                display: none !important;
             }
         }
     </style>

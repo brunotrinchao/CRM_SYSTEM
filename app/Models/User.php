@@ -77,6 +77,6 @@ class User extends Authenticatable implements FilamentUser, ProvidesActivityTitl
             return $this->avatar_url;
         }
 
-        return Storage::url($this->avatar_url);
+        return Storage::disk('public')->url($this->avatar_url);
     }
 }

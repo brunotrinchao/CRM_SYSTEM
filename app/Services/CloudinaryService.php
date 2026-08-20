@@ -10,11 +10,44 @@ class CloudinaryService
 {
     public static function upload(TemporaryUploadedFile $file): string
     {
-        $path = $file->getRealPath();
+        $path = null;
 
-        if (!is_string($path) || $path === '' || !is_file($path)) {
-            // em fluxos Livewire o tmp é um stream; usa o recurso php://temp subjacente
-            $path = (string) $file->getPathname();
+        // 1. Tenta obter o realpath/path nativo se for um arquivo válido no disco
+        foreach ([$file->getRealPath(), $file->path()] as $candidate) {
+            if (is_string($candidate) && $candidate !== '' && is_file($candidate)) {
+                $path = $candidate;
+                break;
+            }
+        }
+
+        // 2. Se não resolver direto, busca nos caminhos possíveis do Laravel storage
+        if (!$path) {
+            $pathname = ltrim($file->getPathname(), '/');
+            $basename = basename($pathname);
+
+            $candidates = [
+                storage_path('app/' . $pathname),
+                storage_path('app/private/' . $pathname),
+                storage_path('app/public/' . $pathname),
+                storage_path('app/livewire-tmp/' . $basename),
+                storage_path('app/private/livewire-tmp/' . $basename),
+                storage_path('app/public/livewire-tmp/' . $basename),
+                storage_path('app/livewire-tmp/' . $pathname),
+                storage_path('app/private/livewire-tmp/' . $pathname),
+                storage_path('app/public/livewire-tmp/' . $pathname),
+                sys_get_temp_dir() . '/' . $basename,
+            ];
+
+            foreach ($candidates as $cand) {
+                if (is_string($cand) && $cand !== '' && is_file($cand)) {
+                    $path = $cand;
+                    break;
+                }
+            }
+        }
+
+        if (!$path || !is_file($path)) {
+            throw new \RuntimeException("Não foi possível localizar o arquivo temporário enviado para upload.");
         }
 
         $result = static::api()->upload(

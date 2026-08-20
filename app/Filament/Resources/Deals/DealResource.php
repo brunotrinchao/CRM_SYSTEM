@@ -16,6 +16,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use App\Enums\UserProfile;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -25,6 +27,17 @@ use ToneGabes\Filament\Icons\Enums\Phosphor;
 class DealResource extends Resource
 {
     protected static ?string $model = Deal::class;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->reorder()
+            ->orderBy('created_at', 'desc')
+            ->when(
+                Auth::check() && Auth::user()?->profile === UserProfile::USER,
+                fn (Builder $query) => $query->where('user_id', Auth::id())
+            );
+    }
 
     protected static string|BackedEnum|null $navigationIcon = Phosphor::HandshakeDuotone;
 

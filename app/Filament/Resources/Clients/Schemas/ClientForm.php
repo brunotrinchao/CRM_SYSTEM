@@ -17,6 +17,9 @@ use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Forms\Components\TextInput as TextInputDefault;
+use Filament\Support\RawJs;
+use ToneGabes\Filament\Icons\Enums\Phosphor;
 
 class ClientForm
 {
@@ -24,38 +27,44 @@ class ClientForm
     {
         return $schema
             ->components([
-                    TextInput::make('name', 'Nome', [
-                        'required' => true,
-                        'maxLength' => 255,
-                        'prefixIcon' => Heroicon::User,
-                    ]),
-                    TextInput::make('email', 'E-mail', [
-                        'type' => 'email',
-                        'maxLength' => 255,
-                        'prefixIcon' => Heroicon::Envelope,
-                    ])
+                TextInput::make('name', 'Nome', [
+                    'required' => true,
+                    'maxLength' => 255,
+                    'prefixIcon' => Heroicon::User,
+                ]),
+                TextInput::make('email', 'E-mail', [
+                    'type' => 'email',
+                    'maxLength' => 255,
+                    'prefixIcon' => Heroicon::Envelope,
+                ])
                     ->unique(
-                        table: 'clients', 
-                        column: 'email', 
+                        table: 'clients',
+                        column: 'email',
                         ignoreRecord: true
                     ),
-                    TextInput::make('phone', 'Telefone', [
-                        'type' => 'tel',
-                        'maxLength' => 255,
-                        'prefixIcon' => Heroicon::Phone,
-                    ]),
-                    TextInput::make('cellphone', 'Celular', [
-                        'type' => 'tel',
-                        'maxLength' => 255,
-                        'prefixIcon' => Heroicon::DevicePhoneMobile,
-                    ]),
-                    Select::make('origin', 'Origem', [
-                        'options' => ClientOrigin::options(),
-                        'required' => true,
-                    ]),
-                    Textarea::make('description', 'Descrição', [
-                        'maxLength' => 65535,
-                    ]),
+                TextInput::make('phone', 'Telefone', [
+                    'required' => true,
+                    'prefixIcon' => Phosphor::PhoneCallFill,
+                ])
+                    ->mask(RawJs::make(<<<'JS'
+                            $input.length >= 14 ? '(99) 99999-9999' : '(99) 9999-9999'
+                        JS))
+                    ->placeholder('(00) 00000-Celular'),
+                TextInput::make('cellphone', 'Telefone', [
+                    'required' => true,
+                    'prefixIcon' => Phosphor::DeviceMobileCameraFill,
+                ])
+                    ->mask(RawJs::make(<<<'JS'
+                            $input.length >= 14 ? '(99) 99999-9999' : '(99) 9999-9999'
+                        JS))
+                    ->placeholder('(00) 00000-0000'),
+                Select::make('origin', 'Origem', [
+                    'options' => ClientOrigin::options(),
+                    'required' => true,
+                ]),
+                Textarea::make('description', 'Descrição', [
+                    'maxLength' => 65535,
+                ]),
                 Repeater::make('addresses', 'Endereços', [
                     TextInput::make('zip_code', 'CEP', [
                         'required' => true,
@@ -124,12 +133,12 @@ class ClientForm
                             'TO' => 'Tocantins',
                         ],
                     ]),
-                    TextInput::make('reference', 'Ponto de referência',[
+                    TextInput::make('reference', 'Ponto de referência', [
                         'maxLength' => 255,
                         'columnSpanFull' => true,
                     ]),
                     Hidden::make('country')
-                    ->default('Brasil'),
+                        ->default('Brasil'),
                 ], [
                     'columns' => 2,
                     'collapsible' => true,

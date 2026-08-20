@@ -52,7 +52,7 @@ class CategoriesTable
                     actionCallback: fn (Model $record, array $data) => CategoryService::update($record, $data),
                     model: Category::class,
                     recordName: 'Categoria',
-                    modal: false
+                    modal: false,
                 )
             ])
             ->toolbarActions([

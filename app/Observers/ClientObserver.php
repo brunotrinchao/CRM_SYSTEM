@@ -23,7 +23,7 @@ class ClientObserver
         $title = "Novo Cliente Criado";
         $body = "{$actorName} criou o cliente '{$client->name}'.";
 
-        $url = route('filament.admin.resources.clients.edit', ['record' => $client]);
+        $url = \App\Filament\Resources\Clients\ClientResource::getUrl('index');
 
         $this->dispatchNotification($client->user_id, $title, $body, 'create');
     }

@@ -23,7 +23,8 @@ class ListCategories extends ListRecords
                 actionCallback: fn (array $data) => CategoryService::create($data),
                 recordName: 'Categoria',
                 model: Category::class,
-                modal: false
+                modal: false,
+                name: 'create_category_modal',
             ),
         ];
     }

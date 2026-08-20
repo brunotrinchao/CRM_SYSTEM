@@ -6,6 +6,7 @@ use App\Filament\Widgets;
 use Bjanczak\FilamentFlexFields\FilamentFlexFieldsPlugin;
 use BokshornIt\FilamentActivityTimeline\ActivityTimelinePlugin;
 use Filament\Enums\ThemeMode;
+use Filament\FontProviders\SpatieGoogleFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -43,7 +44,7 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->passwordReset()
             ->defaultThemeMode(ThemeMode::Light)
-            ->font('Exo')
+            ->font('Inter', provider: SpatieGoogleFontProvider::class)
             ->colors([
                 'primary' => Color::Blue, // Azul corporativo principal dos botões e menus ativos
                 'gray' => Color::Slate,   // Tons neutros limpos para fundos e bordas
@@ -120,6 +121,18 @@ class AdminPanelProvider extends PanelProvider
                             ->avatar()
                             ->imageEditor()
                             ->circleCropper()
+                            ->getUploadedFileUsing(function ($component, string $file): ?array {
+                                $url = (str_starts_with($file, 'http://') || str_starts_with($file, 'https://'))
+                                    ? $file
+                                    : \Illuminate\Support\Facades\Storage::url($file);
+
+                                return [
+                                    'name' => basename(parse_url($file, PHP_URL_PATH) ?? $file),
+                                    'size' => 0,
+                                    'type' => null,
+                                    'url' => $url,
+                                ];
+                            })
                             ->saveUploadedFileUsing(fn (\Filament\Forms\Components\FileUpload $component, \Livewire\Features\SupportFileUploads\TemporaryUploadedFile $file): string => \App\Services\CloudinaryService::upload($file))
                             ->deleteUploadedFileUsing(function (\Filament\Forms\Components\FileUpload $component, ?string $file): ?bool {
                                 if ($file) {

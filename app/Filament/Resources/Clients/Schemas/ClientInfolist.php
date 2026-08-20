@@ -22,6 +22,15 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Support\Colors\Color;
 use ToneGabes\Filament\Icons\Enums\Phosphor;
 
+use App\Enums\DealStatus;
+use App\Filament\Actions\SimpleActions;
+use App\Filament\Resources\Deals\Schemas\DealInfolist;
+use App\Models\Deal;
+use Bjanczak\FilamentFlexFields\Filament\Schemas\Components\ItemCard;
+use Filament\Schemas\Components\Actions;
+use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\Width;
+
 class ClientInfolist
 {
     public static function configure(Schema $schema): Schema
@@ -70,27 +79,75 @@ class ClientInfolist
                             ->badgeColor(Color::Gray)
                             ->schema([
                                 RepeatableEntry::make('deals')
+                                    ->getStateUsing(fn($record) => $record->deals()->orderBy('created_at', 'desc')->get())
                                     ->hiddenLabel()
+                                    ->extraAttributes(['class' => 'custom-clean-repeatable'])
                                     ->schema([
-                                        Text::make('title', 'Negócio', [
-                                            'columnSpanFull' => true,
-                                        ]),
-                                        TextEntry::make('product.name')
-                                            ->label('Produto'),
-                                        TextEntry::make('status')
-                                            ->label('Status')
-                                            ->badge(),
-                                        Text::make('total_value', 'Valor', [
-                                            'money' => true
-                                        ]),
-                                        Text::make('discount', 'Desconto', [
-                                            'money' => true
-                                        ]),
-                                        TextEntry::make('expected_close_date')
-                                            ->label('Fechamento previsto')
-                                            ->date('d/m/Y'),
+                                        ItemCard::make(fn (Deal $record) => $record->title)
+                                            ->icon(Phosphor::Briefcase)
+                                            ->extraAttributes(['class' => 'item-card--form-panel'])
+                                            ->schema([
+                                                Grid::make(2)
+                                                    ->schema([
+                                                        Text::make('title', 'Negócio')
+                                                            ->columnSpan(2)
+                                                            ->suffixAction(
+                                                                SimpleActions::getReadOnlyViewInfolist(
+                                                                    width: Width::Large,
+                                                                    schemaViewCallback: fn(Schema $schema) => DealInfolist::configure($schema),
+                                                                    model: Deal::class,
+                                                                    recordName: 'Negócio',
+                                                                    modal: false,
+                                                                    relations: ['client', 'products', 'discountRequests'],
+                                                                )
+                                                            ),
+                                                         TextEntry::make('products_display')
+                                                             ->label('Produtos')
+                                                             ->getStateUsing(function (Deal $record) {
+                                                                 $record->loadMissing('products', 'product');
+                                                                 if ($record->products && $record->products->isNotEmpty()) {
+                                                                     return $record->products->pluck('name')->join(', ');
+                                                                 }
+                                                                 if ($record->product) {
+                                                                     return $record->product->name;
+                                                                 }
+                                                                 return '-';
+                                                             }),
+                                                        TextEntry::make('status')
+                                                            ->label('Status')
+                                                            ->badge()
+                                                            ->color(fn (DealStatus $state) => $state->color()),
+                                                        Text::make('total_value', 'Valor', [
+                                                            'money' => true
+                                                        ]),
+                                                        Text::make('discount', 'Desconto', [
+                                                            'money' => true
+                                                        ]),
+                                                        TextEntry::make('actual_close_date')
+                                                            ->label('Data do ganho')
+                                                            ->date('d/m/Y')
+                                                            ->visible(fn($record) => $record?->status === DealStatus::WON),
+                                                        TextEntry::make('loss_reason')
+                                                            ->label('Motivo da perda')
+                                                            ->visible(fn($record) => $record?->status === DealStatus::LOST),
+
+                                                        TextEntry::make('id')
+                                                            ->hiddenLabel()
+                                                            ->formatStateUsing(fn () => '')
+                                                            ->suffixActions([
+                                                                SimpleActions::getReadOnlyViewInfolist(
+                                                                    width: Width::Large,
+                                                                    schemaViewCallback: fn(Schema $schema) => DealInfolist::configure($schema),
+                                                                    model: Deal::class,
+                                                                    recordName: 'Negócio',
+                                                                    modal: false,
+                                                                    relations: ['client', 'products', 'discountRequests'],
+                                                                )
+                                                            ])
+                                                            ->columnSpan(2),
+                                                    ])
+                                            ])
                                     ])
-                                    ->columns(2)
                             ])
                     ]),
             ]);

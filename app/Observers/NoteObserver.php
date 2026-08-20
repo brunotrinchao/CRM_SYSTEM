@@ -11,11 +11,18 @@ class NoteObserver
     use NotificationResolveTrait;
     public function created(Note $note): void
     {
+        if ($note->deal_id && $note->deal) {
+            $contactDate = $note->contact_date ?? now();
+            $note->deal->update([
+                'last_contact_date' => $contactDate,
+            ]);
+        }
+
         $actor = Auth::user();
         $actorName = $actor ? $actor->name : 'Sistema';
         
         $title = "Nova Nota Criado";
-        $body = "{$actorName} criou uma nota '{$note->name}' para o negócio '{$note->deal->title}'.";
+        $body = "{$actorName} criou uma nota '{$note->name}' para o negócio '{$note->deal?->title}'.";
 
         $this->dispatchNotification($note->user_id, $title, $body, 'create');
     }

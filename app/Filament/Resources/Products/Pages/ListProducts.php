@@ -23,7 +23,8 @@ class ListProducts extends ListRecords
                 actionCallback: fn(array $data) => ProductService::create($data),
                 recordName: 'Produto',
                 model: Product::class,
-                modal: false
+                modal: false,
+                name: 'create_product_modal',
             ),
         ];
     }

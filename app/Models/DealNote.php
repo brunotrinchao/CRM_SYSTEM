@@ -56,10 +56,10 @@ class DealNote extends Model implements ProvidesActivityTitle
             ->logOnlyDirty()
             ->dontLogEmptyChanges()
             ->setDescriptionForEvent(fn (string $eventName): string => match ($eventName) {
-                'created' => 'criou esta nota',
-                'updated' => 'atualizou esta nota',
+                'created' => 'criou esta contato',
+                'updated' => 'atualizou esta contato',
                 'deleted' => 'excluiu esta nota',
-                'restored' => 'restaurou esta nota',
+                'restored' => 'restaurou esta contato',
                 default => $eventName,
             });
     }

@@ -9,27 +9,40 @@ class DealNoteService
 {
     public static function create(array $data): DealNote
     {
-        $data['user_id'] = Auth::id();
+        if (empty($data['user_id']) && Auth::check()) {
+            $data['user_id'] = Auth::id();
+        }
 
         $note = DealNote::create($data);
 
         if (isset($data['deal_id'])) {
             $deal = \App\Models\Deal::find($data['deal_id']);
-            if ($deal && $deal->status === \App\Enums\DealStatus::PENDING) {
-                $deal->update([
-                    'status' => \App\Enums\DealStatus::NEGOTIATING,
-                ]);
+            if ($deal) {
+                $updateData = [
+                    'last_contact_date' => $note->contact_date ?? $data['contact_date'] ?? now(),
+                ];
+
+                if ($deal->status === \App\Enums\DealStatus::PENDING) {
+                    $updateData['status'] = \App\Enums\DealStatus::NEGOTIATING;
+                }
+
+                $deal->update($updateData);
             }
         }
 
         return $note;
     }
 
-    public static function update(DealNote $deal, array $data): DealNote
+    public static function update(DealNote $note, array $data): DealNote
     {
-        $deal->update($data);
+        $deal = $note->deal;
+        if ($deal && !in_array($deal->status, [\App\Enums\DealStatus::PENDING, \App\Enums\DealStatus::NEGOTIATING], true)) {
+            throw new \InvalidArgumentException('Contatos só podem ser editados quando o negócio estiver com status Pendente ou Negociação.');
+        }
 
-        return $deal;
+        $note->update($data);
+
+        return $note;
     }
 }
 
