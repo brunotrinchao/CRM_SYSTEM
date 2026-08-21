@@ -8,11 +8,12 @@
         <x-slot name="heading">
             <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
-                    <x-filament::icon icon="heroicon-o-phone-arrow-up-right" class="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                    <x-filament::icon icon="heroicon-o-phone-arrow-up-right"
+                        class="h-5 w-5 text-primary-600 dark:text-primary-400" />
                     <span class="font-extrabold text-sm text-slate-900 dark:text-slate-100">Contatos Pendentes</span>
-                    <span class="bg-amber-500 text-white font-extrabold px-2 py-0.5 rounded-full text-xs shrink-0 shadow-sm">
+                    <x-filament::badge color="danger" size="xs">
                         {{ $totalCount }}
-                    </span>
+                    </x-filament::badge>
                 </div>
             </div>
         </x-slot>
@@ -29,25 +30,27 @@
                         $deal = $item['deal'];
                         $isRed = $item['is_overdue_24h'];
                     @endphp
-                    <div
-                        wire:click="mountAction('viewDealAction', { record: {{ $deal->id }} })"
-                        class="relative p-3 rounded-xl border transition-all duration-200 shadow-sm flex flex-col justify-between space-y-2 cursor-pointer hover:shadow-md hover:scale-[1.01] {{ $isRed ? 'bg-red-50/80 dark:bg-red-950/40 border-red-300 dark:border-red-800/60 ring-1 ring-red-400/40' : 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/40 hover:bg-amber-100/60 dark:hover:bg-amber-900/30' }}"
-                    >
-                        {{-- Header do Card --}}
-                        <div class="flex items-start justify-between gap-2">
-                            <span class="font-bold text-xs hover:underline truncate text-slate-900 dark:text-slate-100">
-                                {{ $deal->title }}
-                            </span>
-                            @if ($isRed)
-                                <span class="bg-red-600 text-white font-extrabold px-2 py-0.5 rounded-full text-[10px] shrink-0">
-                                    Contato em atraso ({{ $item['hours_diff'] }}h)
+                    <x-filament::section compact wire:click="mountAction('viewDealAction', { record: {{ $deal->id }} })"
+                        class="relative p-3 rounded-xl border flex flex-col justify-between space-y-2 cursor-pointer {{ $isRed ? 'bg-red-50/80 dark:bg-red-950/40 border-red-300 dark:border-red-800/60 ring-1 ring-red-400/40' : 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/40 ' }}"
+                        headingTag="h3">
+
+                        <x-slot name="heading">
+
+                            <div class="flex flex-col">
+                                <span class="truncate w-40 text-slate-900 dark:text-slate-100">
+                                    {{ $deal->title }}
                                 </span>
-                            @else
-                                <span class="bg-amber-500 text-white font-bold px-2 py-0.5 rounded-full text-[10px] shrink-0">
-                                    Pendente
-                                </span>
-                            @endif
-                        </div>
+                                <x-slot name="afterHeader">
+                                    @if ($isRed)
+                                        <x-filament::badge color="danger" size="xs">
+                                            {{ $item['days_diff'] }}
+                                        </x-filament::badge>
+                                    @else
+                                        <x-filament::badge color="warning">Pendente</x-filament::badge>
+                                    @endif
+                                </x-slot>
+                            </div>
+                        </x-slot>
 
                         {{-- Detalhes --}}
                         <div class="text-[11px] text-slate-600 dark:text-slate-300 space-y-1">
@@ -69,18 +72,13 @@
 
                         {{-- Botão de Ação Rápida (Apenas para Vendedores USER) --}}
                         @if (Auth::user()?->profile === \App\Enums\UserProfile::USER)
-                            <div class="pt-1" onclick="event.stopPropagation()">
-                                <button
-                                    type="button"
-                                    wire:click.stop="mountAction('addNoteAction', { deal_id: {{ $deal->id }} })"
-                                    class="w-full inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-lg text-white bg-primary-600 hover:bg-primary-500 dark:bg-primary-500 dark:hover:bg-primary-400 transition-colors shadow-sm"
-                                >
-                                    <x-filament::icon icon="heroicon-o-plus-circle" class="h-3.5 w-3.5" />
+                        <x-filament::button wire:click.stop="mountAction('addNoteAction', { deal_id: {{ $deal->id }} })"
+                            class="w-full px-2.5 py-1.5 mt-2" size="sm">
+                                <x-filament::icon icon="heroicon-o-plus" class="h-3.5 w-3.5" />
                                     <span>Registrar Contato</span>
-                                </button>
-                            </div>
+                            </x-filament::button>
                         @endif
-                    </div>
+                    </x-filament::section>
                 @endforeach
             </div>
         @endif

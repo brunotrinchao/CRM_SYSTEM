@@ -105,9 +105,9 @@ class DealForm
                                 return null;
                             })
                             ->suffixAction(
-                                SimpleActions::getCreateModal(
+                                SimpleActions::getWizardCreateModal(
                                     width: Width::Large,
-                                    schemaCallback: fn($schema) => ClientForm::configure($schema),
+                                    steps: ClientForm::getSteps(),
                                     actionCallback: fn(array $data) => ClientService::create($data),
                                     recordName: 'Cliente',
                                     modal: false,
@@ -244,9 +244,9 @@ class DealForm
                                         $set('total_price', round($price * (float) ($get('quantity') ?? 1), 2));
                                     })
                                     ->suffixAction(
-                                        SimpleActions::getCreateModal(
+                                        SimpleActions::getWizardCreateModal(
                                             width: Width::Large,
-                                            schemaCallback: fn($schema) => ProductForm::configure($schema),
+                                            steps: ProductForm::getSteps(),
                                             actionCallback: fn(array $data) => ProductService::create($data),
                                             recordName: 'Produto',
                                             modal: false,
@@ -289,7 +289,7 @@ class DealForm
                             ])
                             ->defaultItems(0)
                             ->addActionLabel('Adicionar produto')
-                                        ]),
+                    ]),
             Step::make('Contato')
                 ->schema(NotesForm::getComponents(isDealForm: true))
         ];

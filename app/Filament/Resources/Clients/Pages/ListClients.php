@@ -18,9 +18,9 @@ class ListClients extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-             SimpleActions::getCreateModal(
-                width: Width::Large,
-                schemaCallback: fn($schema) => ClientForm::configure($schema),
+             SimpleActions::getWizardCreateModal(
+                width: Width::ExtraLarge,
+                steps: ClientForm::getSteps(),
                 actionCallback: fn (array $data) => ClientService::create($data),
                 recordName: 'Cliente',
                 model: Client::class,

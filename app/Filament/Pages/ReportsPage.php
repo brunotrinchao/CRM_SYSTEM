@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\ChannelNote;
 use App\Enums\DealStatus;
 use App\Enums\UserProfile;
 use App\Models\User;
@@ -70,7 +71,7 @@ class ReportsPage extends Page
         return $schema
             ->columns([
                 'default' => 1,
-                'md' => 3,
+                'md' => 4,
             ])
             ->components([
                 DateRangePicker::make('period_range')
@@ -101,6 +102,15 @@ class ReportsPage extends Page
                     ->label('Status do Negócio')
                     ->options(DealStatus::options())
                     ->placeholder('Todos os Status')
+                    ->searchable()
+                    ->native(false)
+                    ->live()
+                    ->columnSpan(1),
+
+                Select::make('interaction_type')
+                    ->label('Canal de Contato')
+                    ->options(ChannelNote::options())
+                    ->placeholder('Todos os Canais')
                     ->searchable()
                     ->native(false)
                     ->live()

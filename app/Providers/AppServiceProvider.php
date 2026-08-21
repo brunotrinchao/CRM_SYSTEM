@@ -34,14 +34,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (str_starts_with(config('app.url'), 'https://') || request()->header('x-forwarded-proto') === 'https') {
+            URL::forceScheme('https');
+        }
+
         if (request()->hasHeader('x-forwarded-host')) {
             $host = request()->header('x-forwarded-host');
             $proto = request()->header('x-forwarded-proto', 'https');
             URL::forceRootUrl("{$proto}://{$host}");
-            URL::forceScheme($proto);
-        } else {
-            URL::forceRootUrl(request()->schemeAndHttpHost());
-            URL::forceScheme(request()->isSecure() ? 'https' : 'http');
         }
 
         Category::observe(CategoryObserver::class);

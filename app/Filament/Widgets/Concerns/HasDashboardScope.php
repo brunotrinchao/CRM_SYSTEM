@@ -14,9 +14,8 @@ trait HasDashboardScope
     #[On('page-filters-updated')]
     public function onPageFiltersUpdated(?array $filters = null): void
     {
-        if ($filters !== null) {
-            $this->pageFilters = $filters;
-        }
+        // O Livewire v3 atualiza automaticamente as propriedades reativas passadas no Blade.
+        // Nao atribuimos $this->pageFilters diretamente para evitar CannotMutateReactivePropException.
     }
 
     /**

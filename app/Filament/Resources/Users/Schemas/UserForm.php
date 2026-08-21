@@ -47,6 +47,16 @@ class UserForm
                     'native' => false,
                     'disabled' => fn ($record) => $record?->profile === UserProfile::ADMIN,
                 ]),
+                Select::make('active', 'Status da Conta', [
+                    'options' => [
+                        1 => 'Ativo',
+                        0 => 'Inativo (Acesso Bloqueado)',
+                    ],
+                    'default' => 1,
+                    'required' => true,
+                    'native' => false,
+                    'disabled' => fn ($record) => Auth::user()?->profile !== UserProfile::ADMIN || ($record !== null && $record->id === Auth::id()),
+                ]),
             ]);
     }
 }

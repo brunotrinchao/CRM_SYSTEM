@@ -3,6 +3,7 @@
 namespace App\Enums;
 
 use App\Enums\Concerns\HasLabel;
+use Filament\Support\Contracts\HasColor;
 
 enum ChannelNote: string implements \Filament\Support\Contracts\HasLabel
 {
@@ -15,7 +16,7 @@ enum ChannelNote: string implements \Filament\Support\Contracts\HasLabel
     case VISIT = 'VISIT';
     case OTHER = 'OTHER';
 
-    public function getLabel(): string
+    public function label(): string
     {
         return match ($this) {
             self::CALL => 'Ligação telefônica',
@@ -25,5 +26,10 @@ enum ChannelNote: string implements \Filament\Support\Contracts\HasLabel
             self::VISIT => 'Visita presencial',
             self::OTHER => 'Outros',
         };
+    }
+
+    public function getLabel(): string
+    {
+        return $this->label();
     }
 }

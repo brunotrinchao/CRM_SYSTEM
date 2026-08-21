@@ -56,7 +56,7 @@ class PendingContactsHeaderBadgeTest extends TestCase
         $this->actingAs($seller);
 
         Livewire::test(PendingContactsHeaderBadge::class)
-            ->assertSee('Contatos pendentes:')
+            ->assertSee('Agenda')
             ->assertSee('1');
     }
 }

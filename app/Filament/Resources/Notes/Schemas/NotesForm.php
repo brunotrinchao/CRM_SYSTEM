@@ -11,6 +11,7 @@ use Bjanczak\FilamentFlexFields\Filament\Forms\Components\FlexTextInput;
 use Bjanczak\FilamentFlexFields\Filament\Forms\Components\SelectField;
 use Filament\Schemas\Schema;
 
+use App\Models\DealNote;
 use Bjanczak\FilamentFlexFields\Filament\Schemas\Components\ItemCard;
 use Bjanczak\FilamentFlexFields\Filament\Schemas\Components\ItemCardStack;
 
@@ -72,6 +73,55 @@ class NotesForm
                     ->size('lg')
                     ->columnSpanFull()
             ]);
+
+        $schema[] = \Filament\Schemas\Components\Actions::make([
+            \Filament\Actions\Action::make('view_contact_history')
+                ->label('Ver Histórico de Contatos')
+                ->icon(\ToneGabes\Filament\Icons\Enums\Phosphor::ClockCounterClockwiseDuotone)
+                ->color(\Filament\Support\Colors\Color::Blue)
+                ->button()
+                ->modalHeading('Histórico de Contatos do Negócio')
+                ->modalWidth(\Filament\Support\Enums\Width::Large)
+                ->slideOver()
+                ->modalSubmitAction(false)
+                ->visible(fn ($get, $record) => ! empty($get('deal_id')) || ($record && ! empty($record->deal_id)))
+                ->infolist(fn ($get, $record) => [
+                    \Filament\Infolists\Components\RepeatableEntry::make('notesHistory')
+                        ->hiddenLabel()
+                        ->getStateUsing(function () use ($get, $record) {
+                            $dealId = $get('deal_id') ?? $record?->deal_id;
+                            if (! $dealId) {
+                                return [];
+                            }
+
+                            return DealNote::query()
+                                ->with(['user', 'deal.client'])
+                                ->where('deal_id', $dealId)
+                                ->orderBy('contact_date', 'desc')
+                                ->get();
+                        })
+                        ->schema([
+                            \Filament\Infolists\Components\TextEntry::make('contact_date')
+                                ->label('Data do Contato')
+                                ->dateTime('d/m/Y H:i'),
+                            \Filament\Infolists\Components\TextEntry::make('user.name')
+                                ->label('Vendedor'),
+                            \Filament\Infolists\Components\TextEntry::make('interaction_type')
+                                ->label('Canal')
+                                ->badge()
+                                ->formatStateUsing(fn ($state) => $state instanceof ChannelNote ? $state->getLabel() : (ChannelNote::tryFrom($state)?->getLabel() ?? $state)),
+                            \Filament\Infolists\Components\TextEntry::make('content')
+                                ->label('Resumo do Contato'),
+                            \Filament\Infolists\Components\TextEntry::make('next_follow_up_date')
+                                ->label('Próximo Contato Agendado')
+                                ->dateTime('d/m/Y H:i')
+                                ->placeholder('Não agendado'),
+                            \Filament\Infolists\Components\TextEntry::make('next_action')
+                                ->label('Próxima Ação')
+                                ->placeholder('-'),
+                        ])
+                ])
+        ]);
 
         return [
             ItemCardStack::make()

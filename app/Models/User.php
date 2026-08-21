@@ -16,7 +16,7 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['name', 'email', 'password', 'profile', 'avatar_url'])]
+#[Fillable(['name', 'email', 'password', 'profile', 'avatar_url', 'active'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser, ProvidesActivityTitle, HasAvatar
 {
@@ -33,13 +33,14 @@ class User extends Authenticatable implements FilamentUser, ProvidesActivityTitl
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'profile' => \App\Enums\UserProfile::class
+            'profile' => \App\Enums\UserProfile::class,
+            'active' => 'boolean',
         ];
     }
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->profile !== null && UserProfile::tryFrom($this->profile->value ?? '') !== null;
+        return (bool) ($this->active ?? true) && $this->profile !== null && UserProfile::tryFrom($this->profile->value ?? '') !== null;
     }
 
     public function canImpersonate(): bool

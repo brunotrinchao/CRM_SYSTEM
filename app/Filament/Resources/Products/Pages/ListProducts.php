@@ -17,9 +17,9 @@ class ListProducts extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            SimpleActions::getCreateModal(
-                width: Width::Large,
-                schemaCallback: fn($schema) => ProductForm::configure($schema),
+            SimpleActions::getWizardCreateModal(
+                width: Width::ThreeExtraLarge,
+                steps: ProductForm::getSteps(),
                 actionCallback: fn(array $data) => ProductService::create($data),
                 recordName: 'Produto',
                 model: Product::class,

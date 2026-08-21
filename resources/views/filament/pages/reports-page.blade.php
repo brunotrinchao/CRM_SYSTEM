@@ -18,6 +18,14 @@
             >
                 Produtos & Estoque
             </x-filament::tabs.item>
+
+            <x-filament::tabs.item
+                :active="$activeTab === 'contatos'"
+                wire:click="setActiveTab('contatos')"
+                icon="heroicon-o-chat-bubble-left-right"
+            >
+                Contatos & Retornos
+            </x-filament::tabs.item>
         </x-filament::tabs>
     </div>
 
@@ -54,6 +62,23 @@
             @livewire(\App\Filament\Widgets\Reports\StockOverviewStatsWidget::class, key('stock-stats'))
 
             @livewire(\App\Filament\Widgets\Reports\ProductsStockTableWidget::class, key('products-stock-table'))
+        </div>
+    @endif
+
+    {{-- Conteúdo da Aba 3: Contatos & Retornos --}}
+    @if ($activeTab === 'contatos')
+        <x-filament::section class="mb-4">
+            <form wire:change="updatedFilters">
+                {{ $this->filtersForm }}
+            </form>
+        </x-filament::section>
+
+        <div class="space-y-6">
+            @livewire(\App\Filament\Widgets\Reports\ContactsOverviewStatsWidget::class, ['pageFilters' => $this->filters], key('contacts-stats-' . md5(json_encode($this->filters))))
+
+            @livewire(\App\Filament\Widgets\Reports\SellerContactsRankingWidget::class, ['pageFilters' => $this->filters], key('seller-contacts-ranking-' . md5(json_encode($this->filters))))
+
+            @livewire(\App\Filament\Widgets\Reports\ContactsTableWidget::class, ['pageFilters' => $this->filters], key('contacts-table-' . md5(json_encode($this->filters))))
         </div>
     @endif
 </x-filament-panels::page>

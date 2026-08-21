@@ -29,7 +29,7 @@
     </div>
 
     {{-- Board Kanban --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-start">
+    <div class="flex overflow-x-auto gap-4 items-start pb-4 snap-x snap-mandatory scrollbar-thin -mx-4 px-4 sm:mx-0 sm:px-0">
         @foreach (\App\Enums\DealStatus::cases() as $status)
             @php
                 $columnDeals = $deals->get($status->value, collect());
@@ -65,7 +65,7 @@
                     draggedOverColumn = null;
                 "
                 :class="{ 'ring-2 ring-primary-500/80 bg-primary-50/40 dark:bg-primary-950/40 scale-[1.01]': draggedOverColumn === '{{ $status->value }}' }"
-                class="flex flex-col bg-slate-100/70 dark:bg-slate-900/50 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3.5 min-h-[580px] transition-all duration-200 {{ $accentBorder }} shadow-sm"
+                class="flex flex-col bg-slate-100/70 dark:bg-slate-900/50 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3.5 min-h-[580px] w-[85vw] sm:w-[300px] lg:w-[calc((100%-4*1rem)/5)] lg:min-w-[240px] shrink-0 snap-start transition-all duration-200 {{ $accentBorder }} shadow-sm"
             >
                 {{-- Cabeçalho da Coluna --}}
                 <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-200/80 dark:border-slate-800">

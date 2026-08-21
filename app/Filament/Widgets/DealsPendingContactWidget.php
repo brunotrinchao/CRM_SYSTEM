@@ -61,6 +61,7 @@ class DealsPendingContactWidget extends Widget implements HasActions, HasForms
             $isPending = false;
             $isOverdue24h = false;
             $hoursDiff = 0;
+            $daysDiff = 0;
             $nextContactHuman = 'Sem agendamento';
 
             if (! $nextContact) {
@@ -72,6 +73,7 @@ class DealsPendingContactWidget extends Widget implements HasActions, HasForms
                     $isPending = true;
                     if ($nextContact->isPast()) {
                         $hoursDiff = (int) $nextContact->diffInHours($now);
+                        $daysDiff =  (int) $nextContact->diffInDays($now);
                         if ($hoursDiff >= 24) {
                             $isOverdue24h = true;
                         }
@@ -89,6 +91,7 @@ class DealsPendingContactWidget extends Widget implements HasActions, HasForms
                 'is_pending' => $isPending,
                 'is_overdue_24h' => $isOverdue24h,
                 'hours_diff' => $hoursDiff,
+                'days_diff' => $daysDiff === 0 ? 'hoje' : ($daysDiff === 1 ? 'há 1 dia' : "{$daysDiff} dias"),
             ];
         })
         ->filter(fn ($item) => $item['is_pending'])

@@ -37,6 +37,11 @@ class UsersTable
                     ->badge()
                     ->formatStateUsing(fn (UserProfile $state): string => $state->label())
                     ->color(fn (UserProfile $state): string => $state->color()),
+                TextColumn::make('active')
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(fn (bool $state): string => $state ? 'Ativo' : 'Inativo')
+                    ->color(fn (bool $state): string => $state ? 'success' : 'danger'),
                 TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime('d/m/Y H:i')
@@ -46,6 +51,12 @@ class UsersTable
                 SelectFilter::make('profile')
                     ->label('Perfil')
                     ->options(UserProfile::options()),
+                SelectFilter::make('active')
+                    ->label('Status')
+                    ->options([
+                        1 => 'Ativo',
+                        0 => 'Inativo',
+                    ]),
             ])
             ->recordUrl(null)
             ->recordAction('custom_view')
@@ -56,22 +67,27 @@ class UsersTable
                     schemaCallback: fn ($schema) => UserForm::configure($schema),
                     schemaViewCallback: fn ($schema) => UserInfolist::configure($schema),
                     actionCallback: function (User $record, array $data) {
-                        // 1. O perfil do usuário ADMIN não pode ser alterado por ninguém
-                        if ($record->profile === UserProfile::ADMIN) {
-                            return $record;
-                        }
+                        $updateData = [];
 
-                        // 2. Apenas ADMIN pode transformar um usuário em ADMIN
-                        if (isset($data['profile']) && $data['profile'] === UserProfile::ADMIN->value) {
-                            if (Auth::user()?->profile !== UserProfile::ADMIN) {
-                                return $record;
+                        // 1. O perfil do usuário ADMIN não pode ser alterado por ninguém
+                        if ($record->profile !== UserProfile::ADMIN) {
+                            if (isset($data['profile'])) {
+                                // Apenas ADMIN pode transformar um usuário em ADMIN
+                                if ($data['profile'] !== UserProfile::ADMIN->value || Auth::user()?->profile === UserProfile::ADMIN) {
+                                    $updateData['profile'] = $data['profile'];
+                                }
                             }
                         }
 
-                        if (isset($data['profile'])) {
-                            $record->update([
-                                'profile' => $data['profile'],
-                            ]);
+                        // 2. Apenas ADMIN pode alterar status da conta (e não pode desativar a si próprio)
+                        if (Auth::user()?->profile === UserProfile::ADMIN && $record->id !== Auth::id()) {
+                            if (isset($data['active'])) {
+                                $updateData['active'] = (bool) $data['active'];
+                            }
+                        }
+
+                        if (! empty($updateData)) {
+                            $record->update($updateData);
                         }
 
                         return $record;

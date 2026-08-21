@@ -43,6 +43,9 @@ class AdminPanelProvider extends PanelProvider
             ->profile(isSimple: false)
             ->login()
             ->passwordReset()
+            ->brandName(fn () => \App\Models\SystemSetting::getCompanyName())
+            ->brandLogo(fn () => \App\Models\SystemSetting::getCompanyLogoUrl())
+            ->brandLogoHeight('2.5rem')
             ->defaultThemeMode(ThemeMode::Light)
             ->font('Inter', provider: SpatieGoogleFontProvider::class)
             ->colors([
